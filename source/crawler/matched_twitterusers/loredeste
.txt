@@ -1,0 +1,1 @@
+{"bio": "Ph.D. Candidate, Brown University CS", "born": "", "followers": "16 Followers", "following": "32 Following", "handle": "@loredeste", "joined": "Joined February 2018", "location": "Providence, RI", "name": "Lorenzo De Stefani", "photo": null, "site": "", "tweets": ["", "", "", "", ""]}

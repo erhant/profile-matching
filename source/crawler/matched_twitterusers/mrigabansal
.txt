@@ -1,0 +1,1 @@
+{"bio": "PhD Student in Economics @RutgersU. Applied Micro/Labor/Development. \nLooking for the answers to Life, the Universe and Everything! \nShe/her", "born": "", "followers": "61 Followers", "following": "1,182 Following", "handle": "@mrigabansal", "joined": "Joined January 2017", "location": "", "name": "Mriga", "photo": null, "site": "", "tweets": ["", "", "", "", ""]}

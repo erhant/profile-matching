@@ -1,0 +1,1 @@
+{"bio": "Brother astronomer at the Vatican Observatory, occasional book author", "born": "", "followers": "6,297 Followers", "following": "490 Following", "handle": "@specolations", "joined": "Joined December 2012", "location": "", "name": "Guy Consolmagno", "photo": null, "site": "", "tweets": ["", "", "", "", ""]}

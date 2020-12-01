@@ -1,0 +1,1 @@
+{"bio": "I like computer architecture. Now working on networks at Google's Madison, WI office. Views my own.", "born": "", "followers": "442 Followers", "following": "531 Following", "handle": "@zehlyi", "joined": "Joined October 2008", "location": "", "name": "Lena Olson", "photo": null, "site": "", "tweets": ["", "", "", "", ""]}

@@ -1,0 +1,1 @@
+{"bio": "Biologist and writer. Author of How Innovation Works: https://amzn.to/35huuXB", "born": "", "followers": "82.8K Followers", "following": "2,623 Following", "handle": "@mattwridley", "joined": "Joined June 2009", "location": "Northumberland, UK", "name": "Matt Ridley", "photo": null, "site": "howinnovationworks.com", "tweets": ["", "", "", "", ""]}

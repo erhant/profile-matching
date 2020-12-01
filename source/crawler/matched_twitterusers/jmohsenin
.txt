@@ -1,0 +1,1 @@
+{"bio": "product design and pizza. previously @quora", "born": "Born March 29", "followers": "924 Followers", "following": "687 Following", "handle": "@jmohsenin", "joined": "Joined February 2008", "location": "San Francisco, CA", "name": "Jackson Mohsenin", "photo": null, "site": "jmohsenin.com", "tweets": ["", "", "", "", ""]}

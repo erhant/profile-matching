@@ -1,0 +1,1 @@
+{"bio": "Assistant Professor @williamandmary. Views of my own.", "born": "", "followers": "437 Followers", "following": "257 Following", "handle": "@adwaitjog", "joined": "Joined June 2009", "location": "Williamsburg, VA", "name": "Adwait Jog", "photo": null, "site": "adwaitjog.github.io", "tweets": ["", "", "", "", ""]}

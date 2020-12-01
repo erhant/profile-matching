@@ -1,0 +1,1 @@
+{"bio": "Ph.D. student @UMich, computer architecture", "born": "", "followers": "397 Followers", "following": "175 Following", "handle": "@hiwottad", "joined": "Joined August 2012", "location": "Ann Arbor, MI", "name": "Hiwot Tadese Kassa", "photo": "https://pbs.twimg.com/profile_images/1091592614812495872/ezobcUfH_400x400.jpg", "site": "", "tweets": ["", "", "", "", ""]}

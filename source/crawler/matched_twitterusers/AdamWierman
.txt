@@ -1,0 +1,1 @@
+{"bio": "Computer Scientist. Professor @Caltech. Views are my own.", "born": "", "followers": "588 Followers", "following": "382 Following", "handle": "@AdamWierman", "joined": "Joined September 2020", "location": "Pasadena, CA", "name": "Adam Wierman", "photo": null, "site": "users.cms.caltech.edu/~adamw/", "tweets": ["", "", "", "", ""]}

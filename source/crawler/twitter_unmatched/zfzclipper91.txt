@@ -1,0 +1,1 @@
+{"bio": "Computer Architect, Texas Longhorn", "born": "", "followers": "36 Followers", "following": "1,634 Following", "handle": "@zfzclipper91", "joined": "Joined March 2017", "location": "Austin, TX", "name": "Francis Zou", "photo": "https://pbs.twimg.com/profile_images/840814119938797568/xsh0v6Le_400x400.jpg", "site": "", "tweets": ["", "", "", "", ""]}

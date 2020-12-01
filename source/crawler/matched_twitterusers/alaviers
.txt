@@ -1,0 +1,1 @@
+{"bio": "Director, @The_RAD_Lab", "born": "", "followers": "960 Followers", "following": "418 Following", "handle": "@alaviers", "joined": "Joined July 2009", "location": "Urbana, IL", "name": "Amy LaViers", "photo": null, "site": "amylaviers.com", "tweets": ["", "", "", "", ""]}

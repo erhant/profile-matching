@@ -1,0 +1,1 @@
+{"bio": "Author and coauthor of many books about dragons. And kender. Sport: flyball racing with my dogs.", "born": "", "followers": "10.9K Followers", "following": "64 Following", "handle": "@WeisMargaret", "joined": "Joined June 2013", "location": "Major Packer fan", "name": "Margaret Weis", "photo": null, "site": "margaretweis.com", "tweets": ["", "", "", "", ""]}

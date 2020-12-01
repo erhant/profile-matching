@@ -1,0 +1,1 @@
+{"bio": "Thinks and talks.", "born": "", "followers": "6,295 Followers", "following": "134 Following", "handle": "@RealMaxMaven", "joined": "Joined June 2012", "location": "Hollywood, CA", "name": "Max Maven", "photo": null, "site": "maxmaven.com", "tweets": ["", "", "", "", ""]}

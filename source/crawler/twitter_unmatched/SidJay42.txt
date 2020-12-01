@@ -1,0 +1,1 @@
+{"bio": "", "born": "", "followers": "", "following": "", "handle": "", "joined": "", "location": "", "name": "", "photo": null, "site": "", "tweets": ["I wish my life was a #github #repository where I could just roll back to my last stable version.14219709", "Do you remember when you joined Twitter? I do! #MyTwitterAnniversary1", "My First Tweet :)1", "", ""]}

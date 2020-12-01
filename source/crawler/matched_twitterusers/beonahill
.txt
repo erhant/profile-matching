@@ -1,0 +1,1 @@
+{"bio": "Data Scientist, TN girl in a TX world, she/her", "born": "", "followers": "166 Followers", "following": "592 Following", "handle": "@beonahill", "joined": "Joined June 2009", "location": "TX", "name": "Betsy Hilliard", "photo": null, "site": "", "tweets": ["", "", "", "", ""]}

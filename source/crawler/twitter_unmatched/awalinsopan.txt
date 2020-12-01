@@ -1,0 +1,1 @@
+{"bio": "Data Viz, Data Science & HCI for Cyber Security.", "born": "", "followers": "693 Followers", "following": "458 Following", "handle": "@awalinsopan", "joined": "Joined April 2009", "location": "", "name": "Awalin Shopan", "photo": null, "site": "awalinsopan.com", "tweets": null}

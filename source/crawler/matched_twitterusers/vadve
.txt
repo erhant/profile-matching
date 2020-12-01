@@ -1,0 +1,1 @@
+{"bio": "Professor of Computer Science. Director, AIFARMS National AI Institute. Co-Director, Center for Digital Agriculture.", "born": "", "followers": "301 Followers", "following": "94 Following", "handle": "@vadve", "joined": "Joined June 2009", "location": "", "name": "Vikram Adve", "photo": null, "site": "", "tweets": ["", "", "", "", ""]}

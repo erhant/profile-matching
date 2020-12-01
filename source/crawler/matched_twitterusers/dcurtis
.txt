@@ -1,0 +1,1 @@
+{"bio": "Among other things, I was once in the third row of the The Price is Right studio audience.", "born": "", "followers": "47.8K Followers", "following": "150 Following", "handle": "@dcurtis", "joined": "Joined October 2007", "location": "", "name": "dustin curtis", "photo": null, "site": "dustincurtis.com", "tweets": ["", "", "", "", ""]}
