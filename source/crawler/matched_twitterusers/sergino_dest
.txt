@@ -1,1 +1,0 @@
-{"bio": "Footballer for @FCBarcelona and @USMNT. @Nike Athlete. info@serginodestofficial.com", "born": "", "followers": "127.6K Followers", "following": "5 Following", "handle": "@sergino_dest", "joined": "Joined August 2020", "location": "Barcelona", "name": "Sergi\u00f1o Dest", "photo": null, "site": "facebook.com/serginodestoff\u2026", "tweets": ["", "", "", "", ""]}

@@ -1,1 +1,0 @@
-{"bg": null, "name": "", "photo": null, "site": "", "education": ["No schools/universities to show"], "location": "", "work": ["No workplaces to show"], "website": "", "bio": "", "education1": [], "education2": [], "work1": [], "work2": []}

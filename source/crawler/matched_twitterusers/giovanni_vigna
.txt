@@ -1,1 +1,0 @@
-{"bio": "Professor at @ucsbcs, CTO at @lastlineinc, and founder of @Shellphish", "born": "", "followers": "827 Followers", "following": "55 Following", "handle": "@giovanni_vigna", "joined": "Joined July 2009", "location": "Santa Barbara, CA", "name": "Giovanni Vigna", "photo": null, "site": "cs.ucsb.edu/~vigna", "tweets": ["", "", "", "", ""]}

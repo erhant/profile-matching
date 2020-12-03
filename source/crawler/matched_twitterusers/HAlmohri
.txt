@@ -1,1 +1,0 @@
-{"bio": "Computer security, machine learning, and coffee. Ph.D. from @virginia_tech. Currently @csdeptku.", "born": "", "followers": "303 Followers", "following": "291 Following", "handle": "@HAlmohri", "joined": "Joined October 2018", "location": "Kuwait", "name": "Hussain Almohri ", "photo": null, "site": "", "tweets": ["", "", "", "", ""]}

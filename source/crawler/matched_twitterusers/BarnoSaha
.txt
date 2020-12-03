@@ -1,1 +1,0 @@
-{"bio": "Undergrad student. Love coding  and computers.Trying to learn machine learning for 2 years now. Still no idea!", "born": "", "followers": "49 Followers", "following": "975 Following", "handle": "@BarnoSaha", "joined": "Joined August 2018", "location": "Bangladesh", "name": "Bijoy Saha Barno", "photo": null, "site": "", "tweets": ["", "", "", "", ""]}

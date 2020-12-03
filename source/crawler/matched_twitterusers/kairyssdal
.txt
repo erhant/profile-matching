@@ -1,1 +1,0 @@
-{"bio": "kryssdal@marketplace.org", "born": "", "followers": "221.9K Followers", "following": "614 Following", "handle": "@kairyssdal", "joined": "Joined April 2009", "location": "Los Angeles, CA", "name": "Kai Ryssdal", "photo": null, "site": "marketplace.org", "tweets": ["", "", "", "", ""]}

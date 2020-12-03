@@ -1,1 +1,0 @@
-{"bio": "Professor @GeorgiaTech, Co-Founder of @Fortiphyd Logic, Personal Account", "born": "", "followers": "493 Followers", "following": "309 Following", "handle": "@rbeyah", "joined": "Joined August 2009", "location": "Atlanta, GA", "name": "Raheem Beyah", "photo": null, "site": "rbeyah.ece.gatech.edu", "tweets": ["", "", "", "", ""]}

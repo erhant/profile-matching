@@ -1,1 +1,0 @@
-{"bio": "Assistant Professor of Computer Science at Drexel University.  All opinions are my own. (He/him)", "born": "", "followers": "850 Followers", "following": "2,276 Following", "handle": "@csgordon", "joined": "Joined August 2008", "location": "Philadelphia, PA", "name": "Colin Gordon", "photo": null, "site": "cs.drexel.edu/~csgordon/", "tweets": null}

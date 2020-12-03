@@ -1,1 +1,0 @@
-{"bio": "The official Twitter account of Tottenham Hotspur.", "born": "", "followers": "5.1M Followers", "following": "400 Following", "handle": "@SpursOfficial", "joined": "Joined March 2010", "location": "Tottenham, London, England", "name": "Tottenham Hotspur", "photo": null, "site": "tottenhamhotspur.com", "tweets": ["", "", "", "", ""]}

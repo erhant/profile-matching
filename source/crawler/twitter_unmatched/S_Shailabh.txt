@@ -1,1 +1,0 @@
-{"bio": "", "born": "", "followers": "", "following": "", "handle": "", "joined": "", "location": "", "name": "", "photo": null, "site": "", "tweets": ["The Self-Organizing Conference on Machine Learning is returning as a 100% online event for 2020. Nov 30-Dec 4. It will still be small to maintain the group discussion feel. Apply at http://socml.org16138662", "", "", "", ""]}

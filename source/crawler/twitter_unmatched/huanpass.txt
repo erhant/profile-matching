@@ -1,1 +1,0 @@
-{"bio": "Joined January 2019", "born": "", "followers": "", "following": "", "handle": "@huanpass", "joined": "", "location": "626 Following1 Follower", "name": "huanpass", "photo": "https://pbs.twimg.com/profile_images/1151205381969973248/PT73dcj7_400x400.png", "site": "", "tweets": ["", "", "", "", ""]}

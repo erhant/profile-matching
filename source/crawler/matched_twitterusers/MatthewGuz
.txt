@@ -1,1 +1,0 @@
-{"bio": "CS Asst. Prof at @ualberta. AI, machine learning, games, and computational creativity| he/him", "born": "", "followers": "2,240 Followers", "following": "658 Following", "handle": "@MatthewGuz", "joined": "Joined February 2011", "location": "Edmonton, Alberta", "name": "Matthew Guzdial", "photo": null, "site": "guzdial.com", "tweets": ["", "", "", "", ""]}

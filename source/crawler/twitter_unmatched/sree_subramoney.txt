@@ -1,1 +1,0 @@
-{"bio": "", "born": "", "followers": "", "following": "", "handle": "", "joined": "", "location": "", "name": "", "photo": null, "site": "", "tweets": ["The Microsoft Surface Laptop 3 Showdown: AMD's Ryzen Picasso vs. Intel's Ice Lakes. .....awesome! https://anandtech.com/show/15213/the-microsoft-surface-laptop-3-showdown-amd-picasso-vs-intel-ice-lake\u20261", "", "", "", ""]}

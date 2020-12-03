@@ -1,1 +1,0 @@
-{"bio": "CCIS PhD student at Northeastern University", "born": "", "followers": "48 Followers", "following": "223 Following", "handle": "@AlesiaChernikov", "joined": "Joined March 2018", "location": "Massachusetts, USA", "name": "Alesia Chernikova", "photo": null, "site": "", "tweets": ["", "", "", "", ""]}

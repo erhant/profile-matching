@@ -1,1 +1,0 @@
-{"bio": "MCUT tool: https://cutdigital.github.io", "born": "", "followers": "77 Followers", "following": "663 Following", "handle": "@Floyd_Chitalu", "joined": "Joined April 2014", "location": "Edinburgh, Scotland", "name": "Floyd", "photo": "https://pbs.twimg.com/profile_images/1015989139643224066/fwAmL53V_400x400.jpg", "site": "", "tweets": ["", "", "", "", ""]}

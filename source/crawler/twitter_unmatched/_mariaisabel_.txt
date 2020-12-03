@@ -1,1 +1,0 @@
-{"bio": "Hardware Security Researcher.", "born": "", "followers": "347 Followers", "following": "580 Following", "handle": "@_mariaisabel_", "joined": "Joined January 2010", "location": "", "name": "Isa", "photo": null, "site": "", "tweets": null}

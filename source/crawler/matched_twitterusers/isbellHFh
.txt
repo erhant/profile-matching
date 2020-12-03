@@ -1,1 +1,0 @@
-{"bio": "Professor and John P. Imlay, Jr. Dean, College of Computing, Georgia Tech", "born": "", "followers": "5,239 Followers", "following": "121 Following", "handle": "@isbellHFh", "joined": "Joined May 2009", "location": "", "name": "Charles Isbell", "photo": null, "site": "cc.gatech.edu/~isbell/", "tweets": ["", "", "", "", ""]}

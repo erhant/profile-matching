@@ -1,1 +1,0 @@
-{"bio": "My passion is my life", "born": "", "followers": "871 Followers", "following": "3,704 Following", "handle": "@abrpritom", "joined": "Joined January 2019", "location": "Dhaka, Bangladesh", "name": "Pritom Datta", "photo": null, "site": "", "tweets": ["", "", "", "", ""]}

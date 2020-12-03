@@ -1,1 +1,0 @@
-{"bio": "Cognitive scientist at Harvard.", "born": "", "followers": "690.5K Followers", "following": "64 Following", "handle": "@sapinker", "joined": "Joined January 2010", "location": "Boston, MA", "name": "Steven Pinker", "photo": null, "site": "stevenpinker.com", "tweets": ["", "", "", "", ""]}

@@ -1,1 +1,0 @@
-{"bio": "Conference Speaker | Cyber-security researcher at @cyberlabsbgu | Ex @Google Employee | A husband, dad, and cat lover", "born": "", "followers": "299 Followers", "following": "900 Following", "handle": "@ben_nassi", "joined": "Joined June 2018", "location": "Israel", "name": "Ben Nassi", "photo": null, "site": "nassiben.com", "tweets": ["", "", "", "", ""]}

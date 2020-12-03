@@ -1,1 +1,0 @@
-{"bio": "", "born": "", "followers": "", "following": "", "handle": "", "joined": "", "location": "", "name": "", "photo": null, "site": "", "tweets": ["Friends11", "Such is life or what do you guys think12", "I wish moon always be full and bright and you always be cool and right. Whenever you go to switch off the light, Remember that I'm wishing you ...Good Night!4324", "", ""]}

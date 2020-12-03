@@ -1,1 +1,0 @@
-{"bio": "Tweets are my own.  [ he / him ]", "born": "", "followers": "1,147 Followers", "following": "3,277 Following", "handle": "@redpig", "joined": "Joined February 2009", "location": "", "name": "Will Drewry", "photo": null, "site": "dataspill.org", "tweets": null}

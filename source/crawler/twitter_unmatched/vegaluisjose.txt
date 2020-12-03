@@ -1,1 +1,0 @@
-{"bio": "PhD student @ UW", "born": "", "followers": "242 Followers", "following": "319 Following", "handle": "@vegaluisjose", "joined": "Joined October 2009", "location": "", "name": "Luis Vega", "photo": null, "site": "homes.cs.washington.edu/~vegaluis/", "tweets": null}
