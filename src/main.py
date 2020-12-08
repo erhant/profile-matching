@@ -1,6 +1,7 @@
 from mongo import Mongo
+from matcher import Matcher
 
-mongoCreds = {
+MONGO_CREDS = {
     "MONGO_HOST": "209.250.251.192",
     "MONGO_USER": "root",
     "MONGO_PASS": "PASSWORD",
@@ -8,12 +9,16 @@ mongoCreds = {
     "PKEY_PASS" : "",
     "MONGO_DB": "facebook-twitter"
 }
+FACEBOOK = "facebook"
+TWITTER = "twitter"
 
-m = Mongo()
-m.connect()
+mon = Mongo()
+mon.connect()
 ###############
 
-m.listCollections()
+matcher = Matcher(mon.db)
+(f, _) = matcher.getFacebookUser('anu.sethi.188')
+(t, _) = matcher.getTwitterUser('abnicken')
 
 ###############
-m.terminate()
+mon.terminate()
