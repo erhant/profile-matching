@@ -14,11 +14,13 @@ TWITTER = "twitter"
 
 mon = Mongo()
 mon.connect()
+
 ###############
 
+(f, fd) = mon.getFacebookUser('anu.sethi.188')
+(t, td) = mon.getTwitterUser('abnicken')
 matcher = Matcher(mon.db)
-(f, _) = matcher.getFacebookUser('anu.sethi.188')
-(t, _) = matcher.getTwitterUser('abnicken')
 
 ###############
+
 mon.terminate()
