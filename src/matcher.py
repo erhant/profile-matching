@@ -1,12 +1,13 @@
 
-def textSimilarity(): # compare locations, educations etc.
+def textSimilarity(text1, text2): # compare locations, educations etc.
     return 1 # todo
 
-def imageSimilarity(): # compare profile images
+def imageSimilarity(image1, image2): # compare profile images
     return 1 # todo
 
-def tweetSemantics(): # maybe compare headline with tweets?
+def textSemantic(text): # maybe compare headline with tweets?
     return 1 # todo
+
 
 class Matcher:
     def __init__(self, db):

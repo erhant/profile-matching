@@ -77,7 +77,6 @@ class Mongo:
             user['profileImage'] = None
         user['matchedTo'] = doc['matched']
         
-        
         # Specials
         user['headline'] = doc['site']
         if doc['bg'] != "":
