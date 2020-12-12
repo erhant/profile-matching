@@ -1,6 +1,8 @@
 import re
 
 def textSimilarity(text1, text2): # compare locations, educations etc.
+    a = 5
+    b = 20
     return 1 # todo
 
 def imageSimilarity(image1, image2): # compare profile images
