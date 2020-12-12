@@ -2,12 +2,11 @@ from sshtunnel import SSHTunnelForwarder
 import pymongo
 from dateutil.parser import parse as parseDate
 import requests
-import re
 
 # adapted from https://gist.github.com/JinhaiZ/3ad536870b9853dbff11ab4241380c0d
 
 ## PARAMS
-defaultCreds = {
+DEFAULT_MONGO_CREDS = {
     "MONGO_HOST": "209.250.251.192",
     "MONGO_USER": "root",
     "MONGO_PASS": "PASSWORD",
@@ -19,7 +18,7 @@ FACEBOOK = "Facebook"
 TWITTER = "Twitter"
 
 class Mongo:
-    def __init__(self, creds = defaultCreds):
+    def __init__(self, creds = DEFAULT_MONGO_CREDS):
         self.tunnel = None
         self.connection = None
         self.db = None
