@@ -1,3 +1,4 @@
+import re
 
 def textSimilarity(text1, text2): # compare locations, educations etc.
     return 1 # todo
@@ -8,6 +9,8 @@ def imageSimilarity(image1, image2): # compare profile images
 def textSemantic(text): # maybe compare headline with tweets?
     return 1 # todo
 
+def findNaiveSimilar():
+    return 1 # todo
 
 class Matcher:
     def __init__(self, db):

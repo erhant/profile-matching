@@ -7,10 +7,10 @@ MONGO_CREDS = {
     "MONGO_PASS": "PASSWORD",
     "PKEY_PATH": "C:/Users/ASUS/.ssh/id_rsa",
     "PKEY_PASS" : "",
-    "MONGO_DB": "facebook-twitter"
+    "MONGO_DB": "new-facebook-twitter"
 }
-FACEBOOK = "facebook"
-TWITTER = "twitter"
+FACEBOOK = "Facebook"
+TWITTER = "Twitter"
 
 mon = Mongo()
 mon.connect()

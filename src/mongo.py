@@ -2,6 +2,7 @@ from sshtunnel import SSHTunnelForwarder
 import pymongo
 from dateutil.parser import parse as parseDate
 import requests
+import re
 
 # adapted from https://gist.github.com/JinhaiZ/3ad536870b9853dbff11ab4241380c0d
 
@@ -12,9 +13,10 @@ defaultCreds = {
     "MONGO_PASS": "PASSWORD",
     "PKEY_PATH": "C:/Users/ASUS/.ssh/id_rsa",
     "PKEY_PASS" : "",
-    "MONGO_DB": "facebook-twitter"
+    "MONGO_DB": "new-facebook-twitter"
 }
-
+FACEBOOK = "Facebook"
+TWITTER = "Twitter"
 
 class Mongo:
     def __init__(self, creds = defaultCreds):
@@ -54,7 +56,7 @@ class Mongo:
             print("\t",coll)
             
     # Get few records for testing
-    def getTopN(self, n, coll = 'facebook'):
+    def getTopN(self, n, coll = FACEBOOK):
         ans = []
         for data in self.db[coll].find().limit(n):
             ans.append(data)
@@ -62,7 +64,7 @@ class Mongo:
     
     # Get and prepare a facebook user
     def getFacebookUser(self, username):
-        doc = self.db['facebook'].find_one({"_id": username})
+        doc = self.db[FACEBOOK].find_one({"_id": username})
         user = {}
         
         # Commons
@@ -76,6 +78,7 @@ class Mongo:
         else:
             user['profileImage'] = None
         user['matchedTo'] = doc['matched']
+        user['sourceCollection'] = FACEBOOK
         
         # Specials
         user['headline'] = doc['site']
@@ -103,7 +106,7 @@ class Mongo:
         
     # Get and prepare a twitter user
     def getTwitterUser(self, username):
-        doc = self.db['twitter'].find_one({"_id": username})
+        doc = self.db[TWITTER].find_one({"_id": username})
         user = {}
         
         # Commons
@@ -117,6 +120,7 @@ class Mongo:
         else:
             user['profileImage'] = None
         user['matchedTo'] = doc['matched']
+        user['sourceCollection'] = TWITTER
         
         # Specials
         user['username'] = doc['_id']
@@ -136,5 +140,10 @@ class Mongo:
         return (user, doc) # doc is returned for debug purposes
     
     # Get raw document data of a user
-    def getUser(self, username, coll = 'facebook'):
+    def getUser(self, username, coll = FACEBOOK):
         return self.db[coll].find_one({"_id": username})
+    
+    def find(self, query = {}, coll = FACEBOOK):
+        return self.db[coll].find(query)
+    
+    
