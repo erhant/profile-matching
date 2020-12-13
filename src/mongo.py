@@ -78,27 +78,32 @@ class Mongo:
             user['profileImage'] = None
         user['matchedTo'] = doc['matched']
         user['sourceCollection'] = FACEBOOK
-        
+        if doc['birthdate'] != "":
+            user['bornAt'] = parseDate(doc['birthdate'][:-10]) # todo: remove Born and convert to date
+        else:
+            user['bornAt'] = None
+            
         # Specials
+        user['friends'] = doc['friends']
         user['headline'] = doc['site']
         if doc['bg'] != "":
             user['backgroundImage'] = requests.get(doc['bg'])
         else:
             user['backgroundImage'] = None
         user['education'] = ""
-        if (len(doc['education']) > 0):
+        if ('education' in doc and len(doc['education']) > 0):
             user['education'] += doc['education'][0] + "\n"
-        if (len(doc['education1']) > 0):
+        if ('education1' in doc and len(doc['education1']) > 0):
             user['education'] += doc['education1'][0] + "\n"
-        if (len(doc['education2']) > 0):
+        if ('education2' in doc and len(doc['education2']) > 0):
             user['education'] += doc['education2'][0] + "\n"
         user['education'] = user['education'].strip()
         user['work'] = ""
-        if (len(doc['work']) > 0):
+        if ('work' in doc and len(doc['work']) > 0):
             user['work'] += doc['work'][0] + "\n"
-        if (len(doc['work1']) > 0):
+        if ('work1' in doc and len(doc['work1']) > 0):
             user['work'] += doc['work1'][0] + "\n"
-        if (len(doc['work2']) > 0):
+        if ('work2' in doc and  len(doc['work2']) > 0):
             user['work'] += doc['work2'][0] + "\n"
         user['work'] = user['work'].strip()
         return (user, doc)
@@ -120,7 +125,11 @@ class Mongo:
             user['profileImage'] = None
         user['matchedTo'] = doc['matched']
         user['sourceCollection'] = TWITTER
-        
+        if doc['born'] != "":
+            user['bornAt'] = parseDate(doc['born'][5:]) # todo: remove Born and convert to date
+        else:
+            user['bornAt'] = None
+            
         # Specials
         user['username'] = doc['_id']
         user['tweets'] = doc['tweets']
@@ -131,10 +140,7 @@ class Mongo:
             user['joinedAt'] = parseDate(doc['joined'][7:]) # todo: remove Joined and convert to date
         else:
             user['joinedAt'] = None
-        if doc['born'] != "":
-            user['bornAt'] = parseDate(doc['born'][5:]) # todo: remove Born and convert to date
-        else:
-            user['bornAt'] = None
+        
         
         return (user, doc) # doc is returned for debug purposes
     
