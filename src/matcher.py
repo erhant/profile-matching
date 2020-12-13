@@ -4,10 +4,45 @@ from transformers import pipeline
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from sentence_transformers import SentenceTransformer, util
 import torch
+import tensorflow as tf
+from SSIM_PIL import compare_ssim
+from PIL import Image
+from skimage.measure import compare_ssim
+import matplotlib.pyplot as plt
+import numpy as np
+import cv2
+from PIL import Image
 
 
-def imageSimilarity(image1, image2): # compare profile images
-    return 1 # todo
+
+def imageSimilarity(image1_path, image2_path): # compare profile images
+    # im1 = None
+    # im2 = None
+
+    # # if image_path.split(".")[-1]=="jpg":
+    # #     tf.io.decode_j
+    # print(image1_path, image2_path)
+    # im1 = tf.io.decode_jpeg(image1_path)
+    # im2 = tf.io.decode_jpeg(image2_path)
+    # im1 = tf.image.convert_image_dtype(im1, tf.float32)
+    # im2 = tf.image.convert_image_dtype(im2, tf.float32)
+    # ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
+    #                       filter_sigma=1.5, k1=0.01, k2=0.03)
+
+    Image.open(image1_path).resize((224,224)).save(image1_path)
+    Image.open(image2_path).resize((224,224)).save(image2_path)
+
+    image1 = cv2.imread(image1_path)
+    image2 = cv2.imread(image2_path)
+    
+    # convert the images to grayscale
+    image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
+    image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+    
+
+    ssim_score = compare_ssim(image1,image2)  
+
+    return ssim_score
 
 def textSimilarity(text1, text2): # get the similarity score.
     # tokenizer = AutoTokenizer.from_pretrained("bert-base-cased-finetuned-mrpc")
@@ -84,6 +119,10 @@ if __name__ == "__main__":
     print(summary)
     score = textSimilarity(text,summary)
     print(score)
+
+    score = imageSimilarity("i2.jpg","i3.jpg")
+    print(f"Image Similarity Score: {score}")
+
     
     
 
