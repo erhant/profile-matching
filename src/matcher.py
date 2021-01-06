@@ -92,6 +92,7 @@ def locationSimilarityScore(loc1, loc2):
     else:
         return distance.get_jaro_distance(loc1,loc2,winkler=False)
 
+
 def namedEntityRecogntion(text):
     ner = pipeline("ner")
     output = ner(text)
@@ -118,12 +119,13 @@ def getProfileCommonComparisonScore(u1,u2):
     
     uname_score  = usernameSimilarityScore(u1["username"],u2["username"])
     loc_score =  0 if u1["location"] == '' or u2["location"] == '' else locationSimilarityScore(u1["location"],u2["location"])
+    website_score =  0 if u1["website"] == '' or u2["website"] == '' else usernameSimilarityScore(u1["website"],u2["website"])
     bio_score = 0 if u1["bio"] == '' or u2["bio"] == '' else textSimilarity(u1["bio"],u2["bio"])
     #img_sim_score = imageSimilarity(u1["profileImage"],u2["profileImage"]) # TODO
     #ner_score = cosineSimilarityScore(u1["ner"],u2["ner"]) # TODO: preprocess "ner" for each user and store in the database
     #print(f"uscore={uname_score},loc_score={loc_score},bio_score={bio_score}")
 
-    score = (1.35 * uname_score + 0.65 * loc_score + bio_score) / 3
+    score = (1.55 * uname_score + 0.65 * loc_score + bio_score + 0.8 * website_score) / 4
     
     return score
 
@@ -132,40 +134,42 @@ class Matcher:
     def __init__(self, mongo):
         self.mongo = mongo # mongo interface to be used by matcher
         
-    def matchTwitterUser(self, username, batchSize = 15):
+    def findMatchForTwitterUser(self, username, batchSize = 64):
       sourceUser = self.mongo.getTwitterUser(username)
       
       # Search the DB batch by batch
       maxScore = 0
       mostSimilarUser = None
       batchNo = 0
-      userCount = 30 # self.mongo.getCount(self.mongo.FACEBOOK)
+      userCount = self.mongo.getCount(self.mongo.FACEBOOK)
       while batchNo * batchSize < userCount:
+        print("Processing [",batchNo * batchSize,"/",userCount,"]")
         users = self.mongo.getManyUsers(batchNo, batchSize, coll=self.mongo.FACEBOOK)
         for targetUser in users:
           score = getProfileCommonComparisonScore(sourceUser,targetUser)
           if score > maxScore:
+            print("\tBetter match found with score",score)
             mostSimilarUser = targetUser
             maxScore = score
         batchNo += 1
           
       return (mostSimilarUser, maxScore)
     
-    def matchFacebookUser(self, username, batchSize = 15):
+    def findMatchForFacebookUser(self, username, batchSize = 64):
       sourceUser = self.mongo.getFacebook(username)
       
       # Search the DB batch by batch
       maxScore = 0
       mostSimilarUser = None
       batchNo = 0
-      userCount = 30 # self.mongo.getCount(self.mongo.TWITTER)
+      userCount = self.mongo.getCount(self.mongo.TWITTER)
       while batchNo * batchSize < userCount:
         print("Processing [",batchNo * batchSize,"/",userCount,"]")
         users = self.mongo.getManyUsers(batchNo, batchSize, coll=self.mongo.TWITTER)
         for targetUser in users:
           score = getProfileCommonComparisonScore(sourceUser,targetUser)
           if score > maxScore:
-            print("Better match found with score",score)
+            print("\tBetter match found with score",score)
             mostSimilarUser = targetUser
             maxScore = score
         batchNo += 1

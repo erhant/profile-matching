@@ -99,9 +99,9 @@ class Mongo:
       # Commons
       user['username'] = doc['_id']
       user['name'] = doc['name']
-      user['location'] = doc['location']
-      user['website'] = doc['website']
-      user['bio'] = doc['bio']
+      user['location'] = doc['location'] 
+      user['website'] = doc['website'] 
+      user['bio'] = doc['bio'] 
       if doc['photo'] != "":
         user['profileImage'] = doc['photo'] # requests.get(doc['photo']) # todo process image
       else:
@@ -116,7 +116,7 @@ class Mongo:
       
       # Specials
       user['friends'] = list(map(lambda f : f[25:], doc['friends']))
-      user['headline'] = doc['site']
+      user['headline'] = doc['headline']
       if doc['bg'] != "":
         user['backgroundImage'] = doc['bg'] #requests.get(doc['bg'])
       else:
@@ -146,8 +146,8 @@ class Mongo:
       # Commons
       user['username'] = doc['_id']
       user['name'] = doc['name']
-      user['location'] = doc['location']
-      user['website'] = doc['site'] # can perhaps crawl there and check for facebook / twitter links?
+      user['location'] = doc['location'] 
+      user['website'] = doc['site'] 
       user['bio'] = doc['bio']
       if doc['photo'] != "":
         user['profileImage'] = doc['photo'] #requests.get(doc['photo']) # todo process image
@@ -168,7 +168,7 @@ class Mongo:
       user['following'] = [] #todo @Mandana
       #user['handle'] = doc['handle'] # Redundant
       if doc['joined'] != "":
-        user['joinedAt'] = parseDate(doc['joined'][7:]) # todo: remove Joined and convert to date
+        user['joinedAt'] = parseDate(doc['joined'][7:])
       else:
         user['joinedAt'] = None
         

@@ -22,8 +22,7 @@ mon.connect()
 
 # matched user: PerlmanOfficial < -- > Itzhakperlmanofficial
 matcher = Matcher(mon)
-#ans = matcher.matchTwitterUser("PerlmanOfficial")
-gt = mon.getMatchedGroundtruth()
+ans = matcher.findMatchForTwitterUser("PerlmanOfficial")
 
 ###############
 
