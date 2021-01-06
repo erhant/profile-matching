@@ -16,10 +16,14 @@ mon = Mongo()
 mon.connect()
 
 ###############
+#(f, fd) = mon.getFacebookUser('anu.sethi.188')
+#(t, td) = mon.getTwitterUser('abnicken')
+#users = mon.getManyUsers(5, 10)
 
-(f, fd) = mon.getFacebookUser('anu.sethi.188')
-(t, td) = mon.getTwitterUser('abnicken')
-matcher = Matcher(mon.db)
+# matched user: PerlmanOfficial < -- > Itzhakperlmanofficial
+matcher = Matcher(mon)
+#ans = matcher.matchTwitterUser("PerlmanOfficial")
+gt = mon.getMatchedGroundtruth()
 
 ###############
 
