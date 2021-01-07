@@ -12,7 +12,7 @@ DEFAULT_MONGO_CREDS = {
   "MONGO_PASS": "PASSWORD",
   "PKEY_PATH": "C:/Users/ASUS/.ssh/id_rsa",
   "PKEY_PASS" : "",
-  "MONGO_DB": "new-facebook-twitter"
+  "MONGO_DB": "last-facebook-twitter"
 }
 FACEBOOK = "Facebook"
 TWITTER = "Twitter"
@@ -66,24 +66,23 @@ class Mongo:
         return (user, doc)
       return user
     
-    # Returns users without the 'ner' field @Mandana
-    def getUsersWithoutNER(self, coll = FACEBOOK):
-      return list(self.db[coll].find({"ner": {"$exists": False}}))
-    
     # Updates NER field of a user @Mandana
     def updateNERofUser(self, username, ner, coll = FACEBOOK):
       return 1 #TODO TODO
       
     # Count the number of records in a collection
-    def getCount(self, coll = FACEBOOK):
-      return self.db[coll].count()
+    def getCount(self, coll = FACEBOOK, query = {}):
+      return self.db[coll].find(query).count()
     
     # Get a batch of users
-    def getManyUsers(self, batchNo, batchSize, coll = FACEBOOK):
-      if coll == FACEBOOK:
-        return list(map(lambda doc: self.__processFacebookDoc(doc), list(self.db[coll].find({}).sort("_id").skip(batchNo * batchSize).limit(batchSize))))
+    def getManyUsers(self, batchNo, batchSize, coll = FACEBOOK, query = {}, process=True):
+      if process:
+        if coll == FACEBOOK:
+          return list(map(lambda doc: self.__processFacebookDoc(doc), list(self.db[coll].find(query).sort("_id").skip(batchNo * batchSize).limit(batchSize))))
+        else:
+          return list(map(lambda doc: self.__processTwitterDoc(doc), list(self.db[coll].find(query).sort("_id").skip(batchNo * batchSize).limit(batchSize))))
       else:
-        return list(map(lambda doc: self.__processTwitterDoc(doc), list(self.db[coll].find({}).sort("_id").skip(batchNo * batchSize).limit(batchSize))))
+        return list(self.db[coll].find(query).sort("_id").skip(batchNo * batchSize).limit(batchSize))
       
     def getMatchedGroundtruth(self):
       # Returns a tuple as (twitterUser, facebookUser)
@@ -101,7 +100,7 @@ class Mongo:
       user['name'] = doc['name']
       user['location'] = doc['location'] 
       user['website'] = doc['website'] 
-      user['bio'] = doc['bio'] 
+      user['bio'] = doc['bio'] + doc['site'] # 'site' is like a short biography
       if doc['photo'] != "":
         user['profileImage'] = doc['photo'] # requests.get(doc['photo']) # todo process image
       else:
@@ -116,7 +115,6 @@ class Mongo:
       
       # Specials
       user['friends'] = list(map(lambda f : f[25:], doc['friends']))
-      user['headline'] = doc['headline']
       if doc['bg'] != "":
         user['backgroundImage'] = doc['bg'] #requests.get(doc['bg'])
       else:

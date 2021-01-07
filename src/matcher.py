@@ -114,18 +114,24 @@ def getProfileCommonComparisonScore(u1,u2):
     
     The features are: username, biography, location, ner
     Profile image is not done yet.
-    """
-    score = 0
-    
-    uname_score  = usernameSimilarityScore(u1["username"],u2["username"])
-    loc_score =  0 if u1["location"] == '' or u2["location"] == '' else locationSimilarityScore(u1["location"],u2["location"])
-    website_score =  0 if u1["website"] == '' or u2["website"] == '' else usernameSimilarityScore(u1["website"],u2["website"])
-    bio_score = 0 if u1["bio"] == '' or u2["bio"] == '' else textSimilarity(u1["bio"],u2["bio"])
+    """    
+    usernameSim  = usernameSimilarityScore(u1["username"],u2["username"])
+    nameSim  = 0 if u1["name"] == '' or u2["name"] == '' else usernameSimilarityScore(u1["name"],u2["name"])
+    locationSim =  0 if u1["location"] == '' or u2["location"] == '' else locationSimilarityScore(u1["location"],u2["location"])
+    websiteSim =  0 if u1["website"] == '' or u2["website"] == '' else usernameSimilarityScore(u1["website"],u2["website"])
+    bioSim = 0 if u1["bio"] == '' or u2["bio"] == '' else textSimilarity(u1["bio"],u2["bio"])
+    birthdaySim = 0 if u1["bornAt"] == '' or u2["bornAt"] == '' else (1 if u1['bornAt'] == u2['bornAt'] else 0)
     #img_sim_score = imageSimilarity(u1["profileImage"],u2["profileImage"]) # TODO
     #ner_score = cosineSimilarityScore(u1["ner"],u2["ner"]) # TODO: preprocess "ner" for each user and store in the database
     #print(f"uscore={uname_score},loc_score={loc_score},bio_score={bio_score}")
 
-    score = (1.55 * uname_score + 0.65 * loc_score + bio_score + 0.8 * website_score) / 4
+    score = (0.85 * usernameSim + 
+             0.2 * locationSim + 
+             0.65 * bioSim + 
+             0.3 * websiteSim +
+             0.8 * nameSim +
+             0.4 * birthdaySim
+             )
     
     return score
 
@@ -134,7 +140,7 @@ class Matcher:
     def __init__(self, mongo):
         self.mongo = mongo # mongo interface to be used by matcher
         
-    def findMatchForTwitterUser(self, username, batchSize = 64):
+    def findMatchForTwitterUser(self, username, batchSize = 200):
       sourceUser = self.mongo.getTwitterUser(username)
       
       # Search the DB batch by batch
@@ -155,8 +161,8 @@ class Matcher:
           
       return (mostSimilarUser, maxScore)
     
-    def findMatchForFacebookUser(self, username, batchSize = 64):
-      sourceUser = self.mongo.getFacebook(username)
+    def findMatchForFacebookUser(self, username, batchSize = 200):
+      sourceUser = self.mongo.getFacebookUser(username)
       
       # Search the DB batch by batch
       maxScore = 0
@@ -176,10 +182,15 @@ class Matcher:
           
       return (mostSimilarUser, maxScore)
     
-    # @Mandana (you can rename the function of course)
+    def compareUsers(self, user1, user2):
+      return getProfileCommonComparisonScore(user1,user2)
+    
     def populateNERs(self):
-      twitterDocs = self.mongo.getUsersWithoutNER(coll=self.mongo.TWITTER)
-      facebooDocs = self.mongo.getUsersWithoutNER(coll=self.mongo.FACEBOOK)
+      # {"ner": {"$exists": False}}  
+      #batchNo = 0
+      #userCount = self.mongo.getCount(self.mongo.TWITTER)
+      #while batchNo * batchSize < userCount:
+      
       # For twitter, extract ner from biography
       # For facebook, extract ner from biography+"\n"+education+"\n"+work
       # Update the user docs with the ners, the field ise "ner".
@@ -187,6 +198,11 @@ class Matcher:
       # get ner with: namedEntityRecogntion(texthere)
       
       # thank you!
+      _, doc = self.mongo.getTwitterUser('abnicken', returnDoc = True)
+      print("Starting")
+      ner = namedEntityRecogntion(doc['bio'])
+      print("Done")
+      print(ner)
 
 if __name__ == "__main__":
 

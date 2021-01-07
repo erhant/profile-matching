@@ -7,7 +7,7 @@ MONGO_CREDS = {
     "MONGO_PASS": "PASSWORD",
     "PKEY_PATH": "C:/Users/ASUS/.ssh/id_rsa",
     "PKEY_PASS" : "",
-    "MONGO_DB": "new-facebook-twitter"
+    "MONGO_DB": "last-facebook-twitter"
 }
 FACEBOOK = "Facebook"
 TWITTER = "Twitter"
@@ -16,13 +16,14 @@ mon = Mongo()
 mon.connect()
 
 ###############
-#(f, fd) = mon.getFacebookUser('anu.sethi.188')
-#(t, td) = mon.getTwitterUser('abnicken')
+#(f, fd) = mon.getFacebookUser('Itzhakperlmanofficial', returnDoc = True)
+#(t, td) = mon.getTwitterUser('PerlmanOfficial', returnDoc = True)
 #users = mon.getManyUsers(5, 10)
 
 # matched user: PerlmanOfficial < -- > Itzhakperlmanofficial
 matcher = Matcher(mon)
-ans = matcher.findMatchForTwitterUser("PerlmanOfficial")
+#matcher.populateNERs()
+ans = matcher.findMatchForFacebookUser('Itzhakperlmanofficial')
 
 ###############
 
