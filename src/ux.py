@@ -20,3 +20,7 @@ def openHTML(name):
   # open an HTML file on my own (Windows) computer
   url = "file://" + "ux/"+ name + ".html"
   webbrowser.open(url,new=new)
+  
+  
+if __name__ == "__main__":
+  print(ans)

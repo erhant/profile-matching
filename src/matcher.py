@@ -230,7 +230,8 @@ class Matcher:
     # @mandana
     def evaluateGroundTruth():
       # try to match twitter groundtruth users to facebook users
-      
+      return 1 # TODO
+    
     # @waris
     def populateNERs(self):
       # {"ner": {"$exists": False}}  
