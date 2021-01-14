@@ -171,7 +171,7 @@ class Matcher:
       batchNo = 0
       userCount = self.mongo.getCount(self.mongo.FACEBOOK)
       while batchNo * batchSize < userCount:
-        print("Processing [",batchNo * batchSize,"/",userCount,"]")
+        print("Processing [",min([(batchNo+1) * batchSize, userCount]),"/",userCount,"]")
         users = self.mongo.getManyUsers(batchNo, batchSize, coll=self.mongo.FACEBOOK)
         for targetUser in users:
           score, sims = getProfileCommonComparisonScore(sourceUser,targetUser)
@@ -182,7 +182,7 @@ class Matcher:
             maxSims = sims
         batchNo += 1
           
-      return (mostSimilarUser, maxScore, maxSims)
+      return {'facebookUser': mostSimilarUser, 'twitterUser': sourceUser, 'score': maxScore, 'similarities': maxSims}
     
     def findMatchForFacebookUser(self, username, batchSize = 200):
       sourceUser = self.mongo.getFacebookUser(username)
@@ -194,7 +194,7 @@ class Matcher:
       maxSims = {}
       userCount = self.mongo.getCount(self.mongo.TWITTER)
       while batchNo * batchSize < userCount:
-        print("Processing [",batchNo * batchSize,"/",userCount,"]")
+        print("Processing [",min([(batchNo+1) * batchSize, userCount]),"/",userCount,"]")
         users = self.mongo.getManyUsers(batchNo, batchSize, coll=self.mongo.TWITTER)
         for targetUser in users:
           score, sims = getProfileCommonComparisonScore(sourceUser,targetUser)
@@ -205,7 +205,7 @@ class Matcher:
             maxSims = sims
         batchNo += 1
           
-      return (mostSimilarUser, maxScore, maxSims)
+      return {'facebookUser': sourceUser, 'twitterUser': mostSimilarUser, 'score': maxScore, 'similarities': maxSims}
     
     # @erhan
     def findIndirectMatchForTwitterUser(self, username, batchSize = 200):

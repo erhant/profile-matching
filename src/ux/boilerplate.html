@@ -50,19 +50,13 @@
                     <thead>
                     <tr>
                         <th scope="col">Feature</th>
-						<th scope="col">Content</th>
                         <th scope="col">Weight</th>
                         <th scope="col">Score</th>
                     </tr>
                     </thead>
                     <tbody>
 					<!-- add rows programmatically here -->
-                    <tr>
-                        <td>{{featureName}}</td>
-						<td>{{featureContent}}</td>
-                        <td>{{featureWeight}}</td>
-                        <td>{{featureScore}}</td>
-                    </tr>
+                    {{tableRows}}
                     </tbody>
                 </table>
             </div>
