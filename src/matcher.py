@@ -112,28 +112,49 @@ def cosineSimilarityScore(l1,l2):
 def getProfileCommonComparisonScore(u1,u2):
     """Compares two profiles with their common features.
     
-    The features are: username, biography, location, ner
-    Profile image is not done yet.
-    """    
-    usernameSim  = usernameSimilarityScore(u1["username"],u2["username"])
-    nameSim  = 0 if u1["name"] == '' or u2["name"] == '' else usernameSimilarityScore(u1["name"],u2["name"])
-    locationSim =  0 if u1["location"] == '' or u2["location"] == '' else locationSimilarityScore(u1["location"],u2["location"])
-    websiteSim =  0 if u1["website"] == '' or u2["website"] == '' else usernameSimilarityScore(u1["website"],u2["website"])
-    bioSim = 0 if u1["bio"] == '' or u2["bio"] == '' else textSimilarity(u1["bio"],u2["bio"])
-    birthdaySim = 0 if u1["bornAt"] == '' or u2["bornAt"] == '' else (1 if u1['bornAt'] == u2['bornAt'] else 0)
-    #img_sim_score = imageSimilarity(u1["profileImage"],u2["profileImage"]) # TODO
-    #ner_score = cosineSimilarityScore(u1["ner"],u2["ner"]) # TODO: preprocess "ner" for each user and store in the database
-    #print(f"uscore={uname_score},loc_score={loc_score},bio_score={bio_score}")
-
-    score = (0.85 * usernameSim + 
-             0.2 * locationSim + 
-             0.65 * bioSim + 
-             0.3 * websiteSim +
-             0.8 * nameSim +
-             0.4 * birthdaySim
-             )
+    The features are: username, name, biography, birthdate, location, ner
+    Profile image is not done yet. We can't really download all of the pictures in this exhaustive search.
+    """
     
-    return score
+    similarities = {
+      'username': {
+        'score': usernameSimilarityScore(u1["username"],u2["username"]),
+        'weight': 0.85
+      },
+      'name': {
+        'score': 0 if u1["name"] == '' or u2["name"] == '' else usernameSimilarityScore(u1["name"],u2["name"]),
+        'weight': 0.8
+      },
+      'location': {
+        'score': 0 if u1["location"] == '' or u2["location"] == '' else locationSimilarityScore(u1["location"],u2["location"]),
+        'weight': 0.65
+      },
+      'website': {
+        'score': 0 if u1["website"] == '' or u2["website"] == '' else usernameSimilarityScore(u1["website"],u2["website"]),
+        'weight': 0.3
+      },
+      'bio': {
+        'score': 0 if u1["bio"] == '' or u2["bio"] == '' else textSimilarity(u1["bio"],u2["bio"]),
+        'weight': 0.65
+      },
+      'birthday': {
+        'score': 0 if u1["bornAt"] == '' or u2["bornAt"] == '' else (1 if u1['bornAt'] == u2['bornAt'] else 0),
+        'weight': 0.4
+      },
+      #'image':{
+      #  'score': 0 if u1["profileImage"] == '' or u2["profileImage"] == '' else imageSimilarity(u1["profileImage"],u2["profileImage"]),
+      #  'weight': 0.0
+      #},
+      #'ner': {
+      #  'score': 0 if u1["ner"] == [] or u2["ner"] == [] else cosineSimilarityScore(u1["ner"],u2["ner"]),
+      #  'weight': 0.0
+      #},
+    }
+    
+    
+    totalScore = sum([similarities[f]['score']*similarities[f]['weight'] for f in similarities])
+    
+    return totalScore, similarities
 
 
 class Matcher:
@@ -145,6 +166,7 @@ class Matcher:
       
       # Search the DB batch by batch
       maxScore = 0
+      maxSims = {}
       mostSimilarUser = None
       batchNo = 0
       userCount = self.mongo.getCount(self.mongo.FACEBOOK)
@@ -152,14 +174,15 @@ class Matcher:
         print("Processing [",batchNo * batchSize,"/",userCount,"]")
         users = self.mongo.getManyUsers(batchNo, batchSize, coll=self.mongo.FACEBOOK)
         for targetUser in users:
-          score = getProfileCommonComparisonScore(sourceUser,targetUser)
+          score, sims = getProfileCommonComparisonScore(sourceUser,targetUser)
           if score > maxScore:
             print("\tBetter match found with score",score)
             mostSimilarUser = targetUser
             maxScore = score
+            maxSims = sims
         batchNo += 1
           
-      return (mostSimilarUser, maxScore)
+      return (mostSimilarUser, maxScore, maxSims)
     
     def findMatchForFacebookUser(self, username, batchSize = 200):
       sourceUser = self.mongo.getFacebookUser(username)
@@ -168,23 +191,47 @@ class Matcher:
       maxScore = 0
       mostSimilarUser = None
       batchNo = 0
+      maxSims = {}
       userCount = self.mongo.getCount(self.mongo.TWITTER)
       while batchNo * batchSize < userCount:
         print("Processing [",batchNo * batchSize,"/",userCount,"]")
         users = self.mongo.getManyUsers(batchNo, batchSize, coll=self.mongo.TWITTER)
         for targetUser in users:
-          score = getProfileCommonComparisonScore(sourceUser,targetUser)
+          score, sims = getProfileCommonComparisonScore(sourceUser,targetUser)
           if score > maxScore:
             print("\tBetter match found with score",score)
             mostSimilarUser = targetUser
             maxScore = score
+            maxSims = sims
         batchNo += 1
           
-      return (mostSimilarUser, maxScore)
+      return (mostSimilarUser, maxScore, maxSims)
     
+    # @erhan
+    def findIndirectMatchForTwitterUser(self, username, batchSize = 200):
+      return 1 # TODO
+    
+    # @erhan
+    def findIndirectMatchForFacebookUser(self, username, batchSize = 200):
+      return 1 # TODO
+    
+    # @erhan
+    def outputMatch(twitterUser, facebookUser):
+      '''
+      fields are to be replace as {{fieldName}}.
+      these are: title, description, twName, twBio, twImageURL, fbName, fbBio, fbImageURL
+      for the features, add <tr><td>featureName</td><td>featureContent</td><td>weight</td><td>score</td></tr>
+      '''
+      return 1 # TODO
+      
     def compareUsers(self, user1, user2):
       return getProfileCommonComparisonScore(user1,user2)
     
+    # @mandana
+    def evaluateGroundTruth():
+      # try to match twitter groundtruth users to facebook users
+      
+    # @waris
     def populateNERs(self):
       # {"ner": {"$exists": False}}  
       #batchNo = 0

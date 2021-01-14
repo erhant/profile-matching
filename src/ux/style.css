@@ -1,0 +1,56 @@
+:root {
+    --white: #fffefe;
+    --red: #c83e4d;
+    --orange: #ff934f;
+    --blue: #64b6ac;
+    --gray: #6b7d7d;
+}
+
+body {
+ background-color: var(--white);
+}
+
+.project-title {
+    color: var(--red);
+    margin-top: 1em;
+}
+
+.section-title.facebook {
+    text-align: right;
+}
+
+.profile-card {
+    max-width: 400px;
+    background-position: bottom right;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border: none;
+    height: 100%;
+}
+
+.profile-card.facebook {
+    margin-left: auto;
+    background-image: url("images/fb_small.png");
+}
+
+.profile-card.twitter {
+    background-image: url("images/tw_small.png");
+}
+
+.card-title {
+    color: var(--blue);
+}
+
+.card-img-top {
+    border-radius: 50%;
+    width: 50%;
+    margin: 1em auto;
+}
+
+.row-section {
+    padding: 1em;
+}
+
+.row-section.cards {
+    margin-bottom: 2em;
+}

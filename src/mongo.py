@@ -66,7 +66,7 @@ class Mongo:
         return (user, doc)
       return user
     
-    # Updates NER field of a user @Mandana
+    # Updates NER field of a user @Waris
     def updateNERofUser(self, username, ner, coll = FACEBOOK):
       return 1 #TODO TODO
       
