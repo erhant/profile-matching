@@ -10,7 +10,7 @@ DEFAULT_MONGO_CREDS = {
   "MONGO_HOST": "209.250.251.192",
   "MONGO_USER": "root",
   "MONGO_PASS": "PASSWORD",
-  "PKEY_PATH": "C:/Users/ASUS/.ssh/id_rsa",
+  "PKEY_PATH": "/home/waris/.ssh/id_rsa",
   "PKEY_PASS" : "",
   "MONGO_DB": "last-facebook-twitter"
 }
@@ -205,3 +205,5 @@ class Mongo:
     # Get raw document data of a user
     def __getUser(self, username, coll = FACEBOOK):
       return self.db[coll].find_one({"_id": username})
+      
+
