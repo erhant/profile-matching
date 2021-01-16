@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link href="style.css" rel="stylesheet">
+
+    <title>Profile Matching</title>
+</head>
+<body>
+<div class="container">
+    <div class="row row-section">
+        <div class="col">
+            <h4 class="project-title">{{title}}</h4>
+            <p>{{description}}</p>
+        </div>
+    </div>
+    <div class="row row-section cards">
+        <div class="col">
+            <h5 class="section-title">Twitter Profile</h5>
+            <!-- profile card -->
+            <div class="card profile-card twitter">
+                <img class="card-img-top" src="{{twImageURL}}">
+                <div class="card-body">
+                    <h5 class="card-title"><a target="_blank" href="{{twProfileURL}}">{{twName}}</a></h5>
+                    <p class="card-text">{{twBio}}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col justify-content-end">
+            <!-- profile card -->
+            <h5 class="section-title facebook">Facebook Profile</h5>
+            <div class="card profile-card facebook">
+                <img class="card-img-top" src="{{fbImageURL}}">
+                <div class="card-body">
+                    <h5 class="card-title"><a target="_blank" href="{{fbProfileURL}}">{{fbName}}</a></h5>
+                    <p class="card-text">
+                        {{fbBio}}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row row-section">
+        <div class="col">
+            <!-- table -->
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">Feature</th>
+                        <th scope="col">Weight</th>
+                        <th scope="col">Score</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+					<!-- add rows programmatically here -->
+                    {{tableRows}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

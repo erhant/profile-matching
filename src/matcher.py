@@ -18,6 +18,7 @@ import random
 import cv2
 from pyjarowinkler import distance
 from strsimpy.cosine import Cosine
+from ux import outputHTML
 
 def imageSimilarity(image1_path, image2_path):
     """Compares two images using SSIM.
@@ -114,29 +115,46 @@ def cosineSimilarityScore(l1,l2):
 
 
 def getProfileCommonComparisonScore(u1,u2):
-    """Compares two profiles with their common features.
+       
+    similarities = {
+      'username': {
+        'score': usernameSimilarityScore(u1["username"],u2["username"]),
+        'weight': 0.85
+      },
+      'name': {
+        'score': 0 if u1["name"] == '' or u2["name"] == '' else usernameSimilarityScore(u1["name"],u2["name"]),
+        'weight': 0.8
+      },
+      'location': {
+        'score': 0 if u1["location"] == '' or u2["location"] == '' else locationSimilarityScore(u1["location"],u2["location"]),
+        'weight': 0.65
+      },
+      'website': {
+        'score': 0 if u1["website"] == '' or u2["website"] == '' else usernameSimilarityScore(u1["website"],u2["website"]),
+        'weight': 0.4
+      },
+      'bio': {
+        'score': 0 if u1["bio"] == '' or u2["bio"] == '' else textSimilarity(u1["bio"],u2["bio"]),
+        'weight': 0.65
+      },
+      'birthday': {
+        'score': 0 if u1["bornAt"] == '' or u2["bornAt"] == '' else (1 if u1['bornAt'] == u2['bornAt'] else 0),
+        'weight': 0.4
+      },
+      #'image':{ # Cant do this because facebook profile image URL's are expired!
+      #  'score': 0 if u1["profileImage"] == '' or u2["profileImage"] == '' else imageSimilarity(u1["profileImage"],u2["profileImage"]),
+      #  'weight': 0.0
+      #},
+      #'ner': {
+      #  'score': 0 if u1["ner"] == [] or u2["ner"] == [] else cosineSimilarityScore(u1["ner"],u2["ner"]),
+      #  'weight': 0.0
+      #},
+    }
     
-    The features are: username, biography, location, ner
-    Profile image is not done yet.
-    """    
-    usernameSim  = usernameSimilarityScore(u1["username"],u2["username"])
-    nameSim  = 0 if u1["name"] == '' or u2["name"] == '' else usernameSimilarityScore(u1["name"],u2["name"])
-    locationSim =  0 if u1["location"] == '' or u2["location"] == '' else locationSimilarityScore(u1["location"],u2["location"])
-    websiteSim =  0 if u1["website"] == '' or u2["website"] == '' else usernameSimilarityScore(u1["website"],u2["website"])
-    bioSim = 0 if u1["bio"] == '' or u2["bio"] == '' else textSimilarity(u1["bio"],u2["bio"])
-    birthdaySim = 0 if u1["bornAt"] == '' or u2["bornAt"] == '' else (1 if u1['bornAt'] == u2['bornAt'] else 0)
-    #img_sim_score = imageSimilarity(u1["profileImage"],u2["profileImage"]) # TODO
-    #ner_score = cosineSimilarityScore(u1["ner"],u2["ner"]) # TODO: preprocess "ner" for each user and store in the database
-    #print(f"uscore={uname_score},loc_score={loc_score},bio_score={bio_score}")
-    score = (0.85 * usernameSim + 
-             0.2 * locationSim + 
-             0.65 * bioSim + 
-             0.3 * websiteSim +
-             0.8 * nameSim +
-             0.4 * birthdaySim
-             )
     
-    return score
+    totalScore = sum([similarities[f]['score']*similarities[f]['weight'] for f in similarities]) / sum([similarities[f]['weight'] for f in similarities])
+    
+    return totalScore, similarities
 
 
 
@@ -156,52 +174,145 @@ def getProfileCommonComparisonScore(u1,u2):
 class Matcher:
     def __init__(self, mongo):
         self.mongo = mongo # mongo interface to be used by matcher
+        self.Twitter = mongo.getAllUsers(coll=mongo.TWITTER)
+        self.Facebook = mongo.getAllUsers(coll=mongo.FACEBOOK)
         
-    def findMatchForTwitterUser(self, username, batchSize = 200):
+    def findMatchForTwitterUser(self, username):
+      print("Finding a match for Twitter user:",username)
       sourceUser = self.mongo.getTwitterUser(username)
       
       # Search the DB batch by batch
       maxScore = 0
-      mostSimilarUser = None
-      batchNo = 0
-      userCount = self.mongo.getCount(self.mongo.FACEBOOK)
-      while batchNo * batchSize < userCount:
-        print("Processing [",batchNo * batchSize,"/",userCount,"]")
-        users = self.mongo.getManyUsers(batchNo, batchSize, coll=self.mongo.FACEBOOK)
-        for targetUser in users:
-          score = getProfileCommonComparisonScore(sourceUser,targetUser)
-          if score > maxScore:
-            print("\tBetter match found with score",score)
-            mostSimilarUser = targetUser
-            maxScore = score
-        batchNo += 1
-          
-      return (mostSimilarUser, maxScore)
+      maxSims = {}
+      targetUser = None
+      count = 1
+      for candidate in self.Facebook:
+        score, sims = getProfileCommonComparisonScore(sourceUser,candidate)
+        if score > maxScore:
+          print("\tBetter match found with score",score)
+          targetUser = candidate
+          maxScore = score
+          maxSims = sims
+        if count % 75 == 0:
+          print("\tProcessed [",count,",",len(self.Twitter),"]")
+        count += 1
+        
+      return {'facebookUser': targetUser, 'twitterUser': sourceUser, 'score': maxScore, 'similarities': maxSims}
     
-    def findMatchForFacebookUser(self, username, batchSize = 200):
+    def findMatchForFacebookUser(self, username):
+      print("Finding a match for Facebook user:",username)
       sourceUser = self.mongo.getFacebookUser(username)
       
       # Search the DB batch by batch
       maxScore = 0
-      mostSimilarUser = None
-      batchNo = 0
-      userCount = self.mongo.getCount(self.mongo.TWITTER)
-      while batchNo * batchSize < userCount:
-        print("Processing [",batchNo * batchSize,"/",userCount,"]")
-        users = self.mongo.getManyUsers(batchNo, batchSize, coll=self.mongo.TWITTER)
-        for targetUser in users:
-          score = getProfileCommonComparisonScore(sourceUser,targetUser)
-          if score > maxScore:
-            print("\tBetter match found with score",score)
-            mostSimilarUser = targetUser
-            maxScore = score
-        batchNo += 1
-          
-      return (mostSimilarUser, maxScore)
+      maxSims = {}
+      targetUser = None
+      count = 1
+      for candidate in self.Twitter:
+        score, sims = getProfileCommonComparisonScore(sourceUser,candidate)
+        if score > maxScore:
+          print("\tBetter match found with score",score)
+          targetUser = candidate
+          maxScore = score
+          maxSims = sims
+        if count % 75 == 0:
+          print("\tProcessed [",count,",",len(self.Twitter),"]")
+        count += 1
+        
+      return {'facebookUser': sourceUser, 'twitterUser': targetUser, 'score': maxScore, 'similarities': maxSims}
     
+    
+    def findIndirectMatchForTwitterUser(self, username):
+      # Get user
+      sourceUser = self.mongo.getTwitterUser(username)
+      
+      # Get friends
+      followers = [u for u in self.Twitter if u['username'] in sourceUser['followers']]
+      if len(followers) == 0:
+        print("No followers of this profile is present in DB.")
+        return {}
+      
+      # Find direct matches of the followers
+      print("Found",len(followers),"followers in DB. Finding their direct matches...")
+      candidateMatches = [self.findMatchForTwitterUser(f) for f in followers]
+      candidateMatches = [c['facebookUser'] for c in candidateMatches]
+      
+      # Find common friends on all matched facebook profiles
+      candidates = {}
+      for facebookFriendCandidate in candidateMatches:
+        for f in facebookFriendCandidate['friends']:
+          if f in candidates:
+            candidates[f] += 1
+          else:
+            candidates[f] = 1
+            
+      # Find the "most common" common friend
+      maxCandidate = 0
+      targetUsername = None
+      for c in candidates:
+        if candidates[c] > maxCandidate:
+          maxCandidate = candidates[c]
+          targetUsername = c
+          
+      # Retrieve the target
+      mostSimilarUser = self.mongo.getFacebookUser(targetUsername)
+      
+      # Also calculate their similarity
+      score, sims = getProfileCommonComparisonScore(sourceUser, mostSimilarUser)
+      return {'facebookUser': mostSimilarUser, 'twitterUser': sourceUser, 'score': score, 'similarities': sims}
+    
+    def findIndirectMatchForFacebookUser(self, username):     
+      # Get user
+      sourceUser = self.mongo.getFacebookUser(username)
+      
+      # Get friends
+      friends = [u for u in self.Facebook if u['username'] in sourceUser['friends']]
+      if len(friends) == 0:
+        print("No friends of this profile is present in DB.")
+        return {}
+      
+      # Find direct matches of the friends
+      print("Found",len(friends),"friends in DB. Finding their direct matches...")
+      candidateMatches = [self.findMatchForFacebookUser(f) for f in friends]
+      candidateMatches = [c['twitterUser'] for c in candidateMatches]
+      
+      # Find common followers on matched twitter profiles
+      candidates = {}
+      for twitterFollowerCandidate in candidateMatches:
+        for f in twitterFollowerCandidate['followers']:
+          if f in candidates:
+            candidates[f] += 1
+          else:
+            candidates[f] = 1
+            
+      # Find the "most common" common follower
+      maxCandidate = 0
+      targetUsername = None
+      for c in candidates:
+        if candidates[c] > maxCandidate:
+          maxCandidate = candidates[c]
+          targetUsername = c
+          
+      # Retrieve the target
+      mostSimilarUser = self.mongo.getTwitterUser(targetUsername)
+      
+      # Also calculate their similarity
+      score, sims = getProfileCommonComparisonScore(sourceUser, mostSimilarUser)
+      return {'facebookUser': sourceUser, 'twitterUser': mostSimilarUser, 'score': score, 'similarities': sims}
+    
+    def outputMatch(self, match):
+      outputHTML(match['twitterUser'], match['facebookUser'], match['score'], match['similarities'])
+      print("HTML Created. Opening...")
+      
     def compareUsers(self, user1, user2):
       return getProfileCommonComparisonScore(user1,user2)
     
+    # @erhan
+    def evaluateGroundTruth():
+      # try to match twitter groundtruth users to facebook users
+      return 1 # TODO
+    
+    # @waris
     def populateNERs(self):
       # {"ner": {"$exists": False}}  
       #batchNo = 0
@@ -222,6 +333,9 @@ class Matcher:
       print(ner)
 
 
+
+=======
+if __name__ == "__main__":
 
 
 
