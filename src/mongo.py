@@ -84,6 +84,13 @@ class Mongo:
       else:
         return list(self.db[coll].find(query).sort("_id").skip(batchNo * batchSize).limit(batchSize))
       
+    def getAllUsers(self, coll = FACEBOOK):
+      if coll == FACEBOOK:
+        return list(map(lambda doc: self.__processFacebookDoc(doc), list(self.db[coll].find({}))))
+      else:        
+        return list(map(lambda doc: self.__processTwitterDoc(doc), list(self.db[coll].find({}))))
+      
+    
     def getMatchedGroundtruth(self):
       # Returns a tuple as (twitterUser, facebookUser)
       print("Getting Twitter users with known matches...")
@@ -94,6 +101,8 @@ class Mongo:
     
     def __processFacebookDoc(self, doc):
       user = {}
+      if doc == None:
+        return None
       
       # Commons
       user['username'] = doc['_id']
@@ -105,7 +114,10 @@ class Mongo:
         user['profileImage'] = doc['photo'] # requests.get(doc['photo']) # todo process image
       else:
         user['profileImage'] = None
-      user['matched'] = doc['matched']
+      try:
+        user['matched'] = doc['matched']
+      except:
+        user['matched'] = None
       user['sourceCollection'] = FACEBOOK
       try:
         user['bornAt'] = parseDate(doc['birthdate'][:-10]) # todo: remove Born and convert to date
@@ -114,7 +126,10 @@ class Mongo:
       #user['ner'] = doc['ner'] # we added this to save computation time
       
       # Specials
-      user['friends'] = list(map(lambda f : f[25:], doc['friends']))
+      try:
+        user['friends'] = list(map(lambda f : f[25:], doc['friends']))
+      except:
+        user['friends'] = []
       if doc['bg'] != "":
         user['backgroundImage'] = doc['bg'] #requests.get(doc['bg'])
       else:
@@ -140,6 +155,8 @@ class Mongo:
     
     def __processTwitterDoc(self, doc):
       user = {}
+      if doc == None:
+        return None
       
       # Commons
       user['username'] = doc['_id']
@@ -151,7 +168,10 @@ class Mongo:
         user['profileImage'] = doc['photo'] #requests.get(doc['photo']) # todo process image
       else:
         user['profileImage'] = None
-      user['matched'] = doc['matched']
+      try:
+        user['matched'] = doc['matched']
+      except:
+        user['matched'] = None
       user['sourceCollection'] = TWITTER
       try:
         user['bornAt'] = parseDate(doc['born'][5:]) 

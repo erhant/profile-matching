@@ -45,4 +45,5 @@ def outputHTML(twitterUser, facebookUser, score, similarities, title = "Direct M
   os.startfile(str(pathlib.Path(__file__).parent.absolute()) + "\\ux\\"+ filename + ".html")
   
 if __name__ == "__main__":
-  outputHTML(ans[0], ans[0], ans[1], ans[2])
+  #outputHTML(ans[0], ans[0], ans[1], ans[2])
+  print('ee')

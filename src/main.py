@@ -1,6 +1,5 @@
 from mongo import Mongo
 from matcher import Matcher
-from ux import outputHTML
 
 MONGO_CREDS = {
     "MONGO_HOST": "209.250.251.192",
@@ -15,18 +14,34 @@ TWITTER = "Twitter"
 
 mon = Mongo()
 mon.connect()
-
-###############
-#(f, fd) = mon.getFacebookUser('Itzhakperlmanofficial', returnDoc = True)
-#(t, td) = mon.getTwitterUser('PerlmanOfficial', returnDoc = True)
-#users = mon.getManyUsers(5, 10)
-
-# matched user: PerlmanOfficial < -- > Itzhakperlmanofficial
 matcher = Matcher(mon)
-#matcher.populateNERs()
-ans = matcher.findMatchForFacebookUser('Itzhakperlmanofficial')
+
+TEST_TYPE = "direct_fb" # edit this depending on your need
 
 ###############
 
+if TEST_TYPE == "direct_fb":
+  match = matcher.findMatchForFacebookUser('Itzhakperlmanofficial')
+  matcher.outputMatch(match)
+elif TEST_TYPE == "direct_tw":
+  match = matcher.findMatchForTwitterUser('PerlmanOfficial')
+  matcher.outputMatch(match)
+elif TEST_TYPE == "indirect_fb":
+  match = matcher.findIndirectMatchForFacebookUser('Itzhakperlmanofficial')
+  matcher.outputMatch(match)
+elif TEST_TYPE == "indirect_tw":
+  match = matcher.findIndirectMatchForTwitterUser('PerlmanOfficial')
+  matcher.outputMatch(match)
+elif TEST_TYPE == "getuser_fb":
+  (f, fd) = mon.getFacebookUser('Itzhakperlmanofficial', returnDoc = True)
+elif TEST_TYPE == "getuser_tw":
+  (t, td) = mon.getTwitterUser('PerlmanOfficial', returnDoc = True)
+#elif TEST_TYPE == "direct_eval":
+#  
+else:
+  print("Arbitrary test.")
+
+###############
+  
 mon.terminate()
 
