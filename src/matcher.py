@@ -1,5 +1,8 @@
+#%%
 #import re
+from sklearn import datasets
 from transformers import pipeline
+from mongo import Mongo
 #from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from sentence_transformers import SentenceTransformer, util
 #import torch
@@ -11,6 +14,7 @@ from PIL import Image
 #import nltk
 #from nltk.util import ngrams
 #import numpy as np
+import random
 import cv2
 from pyjarowinkler import distance
 from strsimpy.cosine import Cosine
@@ -124,7 +128,6 @@ def getProfileCommonComparisonScore(u1,u2):
     #img_sim_score = imageSimilarity(u1["profileImage"],u2["profileImage"]) # TODO
     #ner_score = cosineSimilarityScore(u1["ner"],u2["ner"]) # TODO: preprocess "ner" for each user and store in the database
     #print(f"uscore={uname_score},loc_score={loc_score},bio_score={bio_score}")
-
     score = (0.85 * usernameSim + 
              0.2 * locationSim + 
              0.65 * bioSim + 
@@ -134,6 +137,20 @@ def getProfileCommonComparisonScore(u1,u2):
              )
     
     return score
+
+
+
+
+
+    
+    
+    
+    
+    
+    
+
+ 
+
 
 
 class Matcher:
@@ -204,12 +221,101 @@ class Matcher:
       print("Done")
       print(ner)
 
-if __name__ == "__main__":
-
-    u1 = {"username":"waris.gill","location":"Istanbul","ner":["Lahore","Istanbul"],"bio":"I live in lahore."}
-    u2 = {"username":"gil.waris","location":"Istanbl","ner":["Lahore","Istanbul","Turkey"],"bio":"My hometown is lahore."}
-
-    score = getProfileCommonComparisonScore(u1,u2)
-    print(f"Score={score}")
 
 
+
+
+
+
+
+
+
+# if __name__ == "__main__":
+
+  # u1 = {"username":"waris.gill","location":"Istanbul","ner":["Lahore","Istanbul"],"bio":"I live in lahore."}
+  # u2 = {"username":"gil.waris","location":"Istanbl","ner":["Lahore","Istanbul","Turkey"],"bio":"My hometown is lahore."}
+
+  # score = getProfileCommonComparisonScore(u1,u2)
+  # print(f"Score={score}")
+  
+db = Mongo()
+db.connect()
+
+users_dict  = db.getMatchedGroundtruth()
+
+db.terminate()
+
+#%%
+#Generate 5 random numbers between 10 and 30
+    
+
+def getProfileCommonComparisonScoreDataset(u1,u2):
+    """Compares two profiles with their common features.
+    
+    The features are: username, biography, location, ner
+    Profile image is not done yet.
+    """    
+    usernameSim  = usernameSimilarityScore(u1["username"],u2["username"])
+    nameSim  = 0 if u1["name"] == '' or u2["name"] == '' else usernameSimilarityScore(u1["name"],u2["name"])
+    locationSim =  0 if u1["location"] == '' or u2["location"] == '' else locationSimilarityScore(u1["location"],u2["location"])
+    websiteSim =  0 if u1["website"] == '' or u2["website"] == '' else usernameSimilarityScore(u1["website"],u2["website"])
+    bioSim = 0 if u1["bio"] == '' or u2["bio"] == '' else textSimilarity(u1["bio"],u2["bio"])
+    birthdaySim = 0 if u1["bornAt"] == '' or u2["bornAt"] == '' else (1 if u1['bornAt'] == u2['bornAt'] else 0)
+    #img_sim_score = imageSimilarity(u1["profileImage"],u2["profileImage"]) # TODO
+    #ner_score = cosineSimilarityScore(u1["ner"],u2["ner"]) # TODO: preprocess "ner" for each user and store in the database
+    #print(f"uscore={uname_score},loc_score={loc_score},bio_score={bio_score}")
+
+    scores = {"username_sim":usernameSim, "name_sim":nameSim, "loc_sim": locationSim, 'bio_sim':bioSim, 'website_sim':websiteSim, 'birthday_sim': birthdaySim }
+    
+    return scores
+
+def lambdaFun(f_user, t_user):
+    d = getProfileCommonComparisonScoreDataset(f_user,t_user)
+    d["fb_username"] = f_user["username"]
+    d["tw_username"] = t_user["username"]
+    d["fb_matcher"] = f_user["matched"]
+    d["tw_matcher"] = t_user["matched"]
+    if f_user["username"] == t_user["matched"]:
+      d["Label"] = 1
+    else:
+      d["Label"] = 0
+
+    return d 
+
+def preparDatset(fb_users,twitter_users):
+  
+  li = []
+
+  for i in range(len(fb_users)):
+    f_user = fb_users[i]
+    t_user = twitter_users[i]
+    randomlist = random.sample(range(0, len(fb_users)), 6)
+    randomlist.append(i)
+    randomlist =  list(set(randomlist))
+
+    assert t_user["username"] == f_user["matched"]
+
+
+    li += [lambdaFun(fb_users[i],twitter_users[j]) for j in randomlist]
+
+  return li
+
+
+
+
+# print(users_dict["twitter"][1]) 
+# print(users_dict["facebook"][1])
+
+d_set =  preparDatset(fb_users=users_dict["facebook"], twitter_users=users_dict["twitter"])
+
+len(d_set)
+
+
+# %%
+
+import pandas as pd
+
+df = pd.DataFrame.from_records(d_set)
+df.to_csv("dataset.csv",index=False)
+
+# %%
