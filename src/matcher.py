@@ -1,40 +1,31 @@
 #%%
-import re
+#import re
+from sklearn import datasets
 from transformers import pipeline
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from mongo import Mongo
+#from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from sentence_transformers import SentenceTransformer, util
-import torch
+#import torch
 # import tensorflow as tf
 from SSIM_PIL import compare_ssim
 from PIL import Image
-from skimage.measure import compare_ssim
-# import matplotlib.pyplot as plt
-import nltk
-from nltk.util import ngrams
-
-import numpy as np
+#from skimage.measure import compare_ssim
+#import matplotlib.pyplot as plt
+#import nltk
+#from nltk.util import ngrams
+#import numpy as np
+import random
 import cv2
 from pyjarowinkler import distance
-
 from strsimpy.cosine import Cosine
+from ux import outputHTML
 
-
-
-
-def imageSimilarity(image1_path, image2_path): # compare profile images
-    # im1 = None
-    # im2 = None
-
-    # # if image_path.split(".")[-1]=="jpg":
-    # #     tf.io.decode_j
-    # print(image1_path, image2_path)
-    # im1 = tf.io.decode_jpeg(image1_path)
-    # im2 = tf.io.decode_jpeg(image2_path)
-    # im1 = tf.image.convert_image_dtype(im1, tf.float32)
-    # im2 = tf.image.convert_image_dtype(im2, tf.float32)
-    # ssim2 = tf.image.ssim(im1, im2, max_val=1.0, filter_size=11,
-    #                       filter_sigma=1.5, k1=0.01, k2=0.03)
-
+def imageSimilarity(image1_path, image2_path):
+    """Compares two images using SSIM.
+    
+    The images must be JPG (TODO: Improve this to work with any of them). 
+    """
+    
     Image.open(image1_path).resize((224,224)).save(image1_path)
     Image.open(image2_path).resize((224,224)).save(image2_path)
 
@@ -45,37 +36,15 @@ def imageSimilarity(image1_path, image2_path): # compare profile images
     image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
     image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
     
-
     ssim_score = compare_ssim(image1,image2)  
 
     return ssim_score
 
 def textSimilarity(text1, text2): # get the similarity score.
-    # tokenizer = AutoTokenizer.from_pretrained("bert-base-cased-finetuned-mrpc")
-    # model = AutoModelForSequenceClassification.from_pretrained("bert-base-cased-finetuned-mrpc")
-    # classes = ["not paraphrase", "is paraphrase"]
-    # sequence_0 = "The company HuggingFace is based in New York City"
-    # sequence_1 = "Apples are especially bad for your health"
-    # sequence_2 = "HuggingFace's headquarters are situated in Manhattan"
-
-    # paraphrase = tokenizer(sequence_0, sequence_2, return_tensors="pt")
-    # not_paraphrase = tokenizer(sequence_0, sequence_1, return_tensors="pt")
-
-    # paraphrase_classification_logits = model(**paraphrase).logits
-    # not_paraphrase_classification_logits = model(**not_paraphrase).logits
-
-    # paraphrase_results = torch.softmax(paraphrase_classification_logits, dim=1).tolist()[0]
-    # not_paraphrase_results = torch.softmax(not_paraphrase_classification_logits, dim=1).tolist()[0]
-
-    # # Should be paraphrase
-    # for i in range(len(classes)):
-    #     print(f"{classes[i]}: {int(round(paraphrase_results[i] * 100))}%")
-
-
-    # # Should not be paraphrase
-    # for i in range(len(classes)):
-    #     print(f"{classes[i]}: {int(round(not_paraphrase_results[i] * 100))}%")
+    """Compare two texts using BERT model. 
     
+    Returns the Cosine Similarity of the embeddings obtained by BERT.
+    """
     
     model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
     embeddings1 = model.encode([text1], convert_to_tensor=True)
@@ -98,29 +67,36 @@ def textSummarization(text):
 
 
 def textSemantic(text=None): # maybe compare headline with tweets?
+    """Conducts semantic analysis on a text
+       
+    TODO: Returns what?
+    """
     classifier = pipeline('sentiment-analysis')
     r_dict = classifier(text)[0]
     return r_dict["label"],r_dict["score"] 
 
 
 def usernameSimilarityScore(uname1, uname2):
+    """Compare usernames using Jaro distance.
+       
+    Returns a score between 0 and 1, where 1 means exact match.
     """
-        Return score between 0 and 1. 
-    """
- 
-    # score = nltk.edit_distance(uname1, uname2,transpositions=True)
-    # score = 1-nltk.jaccard_distance(set(ngrams('waris.gill', 2)), set(ngrams('gill.waris', 2)))
-    
-    score = distance.get_jaro_distance(uname1,uname2,winkler=False)
-    
-    return score
-
-def locationSimilarityScore(l1, l2):
-
-    if l1 == l2:
+    if uname1 == uname2:
         return 1 # matched exatcly
     else:
-        return usernameSimilarityScore(l1,l2) # or return 0
+        return distance.get_jaro_distance(uname1,uname2,winkler=False)
+
+def locationSimilarityScore(loc1, loc2):
+    """Compare location texts using Jaro distance.
+       
+    Returns a score between 0 and 1, where 1 means exact match.
+    TODO: Google API can be used to obtain coordinates and measure similarity with that too.
+    """
+    if loc1 == loc2:
+        return 1 # matched exatcly
+    else:
+        return distance.get_jaro_distance(loc1,loc2,winkler=False)
+
 
 def namedEntityRecogntion(text):
     ner = pipeline("ner")
@@ -134,98 +110,326 @@ def cosineSimilarityScore(l1,l2):
     d2 = {k:1 for k in l2}
     cosine = Cosine(2)
 
-
     score =  cosine.similarity_profiles(d1,d2)
     return score
 
 
-def getProfileComparisonScore(u1,u2):
-    score = 0
-    uname_score  = usernameSimilarityScore(u1["username"],u2["username"])
-    loc_socre = locationSimilarityScore(u1["location"],u2["location"])
-    img_sim_score = imageSimilarity(u1["image"],u2["image"])
-    ner_score = cosineSimilarityScore(u1["ner"],u2["ner"]) # preprocess "ner" for each user and store in the database
-    bio_score = textSimilarity(u1["bio"],u2["bio"])
+def getProfileCommonComparisonScore(u1,u2):
+       
+    similarities = {
+      'username': {
+        'score': usernameSimilarityScore(u1["username"],u2["username"]),
+        'weight': 0.85
+      },
+      'name': {
+        'score': 0 if u1["name"] == '' or u2["name"] == '' else usernameSimilarityScore(u1["name"],u2["name"]),
+        'weight': 0.8
+      },
+      'location': {
+        'score': 0 if u1["location"] == '' or u2["location"] == '' else locationSimilarityScore(u1["location"],u2["location"]),
+        'weight': 0.65
+      },
+      'website': {
+        'score': 0 if u1["website"] == '' or u2["website"] == '' else usernameSimilarityScore(u1["website"],u2["website"]),
+        'weight': 0.4
+      },
+      'bio': {
+        'score': 0 if u1["bio"] == '' or u2["bio"] == '' else textSimilarity(u1["bio"],u2["bio"]),
+        'weight': 0.65
+      },
+      'birthday': {
+        'score': 0 if u1["bornAt"] == '' or u2["bornAt"] == '' else (1 if u1['bornAt'] == u2['bornAt'] else 0),
+        'weight': 0.4
+      },
+      #'image':{ # Cant do this because facebook profile image URL's are expired!
+      #  'score': 0 if u1["profileImage"] == '' or u2["profileImage"] == '' else imageSimilarity(u1["profileImage"],u2["profileImage"]),
+      #  'weight': 0.0
+      #},
+      #'ner': {
+      #  'score': 0 if u1["ner"] == [] or u2["ner"] == [] else cosineSimilarityScore(u1["ner"],u2["ner"]),
+      #  'weight': 0.0
+      #},
+    }
+    
+    
+    totalScore = sum([similarities[f]['score']*similarities[f]['weight'] for f in similarities]) / sum([similarities[f]['weight'] for f in similarities])
+    
+    return totalScore, similarities
 
-    print(f"uscore={uname_score},lscore={loc_socre},img_score={img_sim_score},ner_score={ner_score},bio_score={bio_score}")
 
-    score = uname_score + loc_socre+ img_sim_score + ner_score + bio_score
-    score /= len(u1.keys()) # normalizing the score between 0 and 1
 
-    return score
+
 
     
-def findNaiveSimilar():
-    return 1 # todo
+    
+    
+    
+    
+    
+
+ 
+
+
 
 class Matcher:
-    def __init__(self, db):
-        self.db = db # connection to be used by matcher
+    def __init__(self, mongo):
+        self.mongo = mongo # mongo interface to be used by matcher
+        self.Twitter = mongo.getAllUsers(coll=mongo.TWITTER)
+        self.Facebook = mongo.getAllUsers(coll=mongo.FACEBOOK)
         
-    def findMatchForTwitter(twitterUser):
-        return 1 # todo
+    def findMatchForTwitterUser(self, username):
+      print("Finding a match for Twitter user:",username)
+      sourceUser = self.mongo.getTwitterUser(username)
+      
+      # Search the DB batch by batch
+      maxScore = 0
+      maxSims = {}
+      targetUser = None
+      count = 1
+      for candidate in self.Facebook:
+        score, sims = getProfileCommonComparisonScore(sourceUser,candidate)
+        if score > maxScore:
+          print("\tBetter match found with score",score)
+          targetUser = candidate
+          maxScore = score
+          maxSims = sims
+        if count % 75 == 0:
+          print("\tProcessed [",count,",",len(self.Twitter),"]")
+        count += 1
+        
+      return {'facebookUser': targetUser, 'twitterUser': sourceUser, 'score': maxScore, 'similarities': maxSims}
     
-    def findMatchForFacebook(facebookUser):
-        return 1 # todo
+    def findMatchForFacebookUser(self, username):
+      print("Finding a match for Facebook user:",username)
+      sourceUser = self.mongo.getFacebookUser(username)
+      
+      # Search the DB batch by batch
+      maxScore = 0
+      maxSims = {}
+      targetUser = None
+      count = 1
+      for candidate in self.Twitter:
+        score, sims = getProfileCommonComparisonScore(sourceUser,candidate)
+        if score > maxScore:
+          print("\tBetter match found with score",score)
+          targetUser = candidate
+          maxScore = score
+          maxSims = sims
+        if count % 75 == 0:
+          print("\tProcessed [",count,",",len(self.Twitter),"]")
+        count += 1
+        
+      return {'facebookUser': sourceUser, 'twitterUser': targetUser, 'score': maxScore, 'similarities': maxSims}
+    
+    
+    def findIndirectMatchForTwitterUser(self, username):
+      # Get user
+      sourceUser = self.mongo.getTwitterUser(username)
+      
+      # Get friends
+      followers = [u for u in self.Twitter if u['username'] in sourceUser['followers']]
+      if len(followers) == 0:
+        print("No followers of this profile is present in DB.")
+        return {}
+      
+      # Find direct matches of the followers
+      print("Found",len(followers),"followers in DB. Finding their direct matches...")
+      candidateMatches = [self.findMatchForTwitterUser(f) for f in followers]
+      candidateMatches = [c['facebookUser'] for c in candidateMatches]
+      
+      # Find common friends on all matched facebook profiles
+      candidates = {}
+      for facebookFriendCandidate in candidateMatches:
+        for f in facebookFriendCandidate['friends']:
+          if f in candidates:
+            candidates[f] += 1
+          else:
+            candidates[f] = 1
+            
+      # Find the "most common" common friend
+      maxCandidate = 0
+      targetUsername = None
+      for c in candidates:
+        if candidates[c] > maxCandidate:
+          maxCandidate = candidates[c]
+          targetUsername = c
+          
+      # Retrieve the target
+      mostSimilarUser = self.mongo.getFacebookUser(targetUsername)
+      
+      # Also calculate their similarity
+      score, sims = getProfileCommonComparisonScore(sourceUser, mostSimilarUser)
+      return {'facebookUser': mostSimilarUser, 'twitterUser': sourceUser, 'score': score, 'similarities': sims}
+    
+    def findIndirectMatchForFacebookUser(self, username):     
+      # Get user
+      sourceUser = self.mongo.getFacebookUser(username)
+      
+      # Get friends
+      friends = [u for u in self.Facebook if u['username'] in sourceUser['friends']]
+      if len(friends) == 0:
+        print("No friends of this profile is present in DB.")
+        return {}
+      
+      # Find direct matches of the friends
+      print("Found",len(friends),"friends in DB. Finding their direct matches...")
+      candidateMatches = [self.findMatchForFacebookUser(f) for f in friends]
+      candidateMatches = [c['twitterUser'] for c in candidateMatches]
+      
+      # Find common followers on matched twitter profiles
+      candidates = {}
+      for twitterFollowerCandidate in candidateMatches:
+        for f in twitterFollowerCandidate['followers']:
+          if f in candidates:
+            candidates[f] += 1
+          else:
+            candidates[f] = 1
+            
+      # Find the "most common" common follower
+      maxCandidate = 0
+      targetUsername = None
+      for c in candidates:
+        if candidates[c] > maxCandidate:
+          maxCandidate = candidates[c]
+          targetUsername = c
+          
+      # Retrieve the target
+      mostSimilarUser = self.mongo.getTwitterUser(targetUsername)
+      
+      # Also calculate their similarity
+      score, sims = getProfileCommonComparisonScore(sourceUser, mostSimilarUser)
+      return {'facebookUser': sourceUser, 'twitterUser': mostSimilarUser, 'score': score, 'similarities': sims}
+    
+    def outputMatch(self, match):
+      outputHTML(match['twitterUser'], match['facebookUser'], match['score'], match['similarities'])
+      print("HTML Created. Opening...")
+      
+    def compareUsers(self, user1, user2):
+      return getProfileCommonComparisonScore(user1,user2)
+    
+    # @erhan
+    def evaluateGroundTruth():
+      # try to match twitter groundtruth users to facebook users
+      return 1 # TODO
+    
+    # @waris
+    def populateNERs(self):
+      # {"ner": {"$exists": False}}  
+      #batchNo = 0
+      #userCount = self.mongo.getCount(self.mongo.TWITTER)
+      #while batchNo * batchSize < userCount:
+      
+      # For twitter, extract ner from biography
+      # For facebook, extract ner from biography+"\n"+education+"\n"+work
+      # Update the user docs with the ners, the field ise "ner".
+      
+      # get ner with: namedEntityRecogntion(texthere)
+      
+      # thank you!
+      _, doc = self.mongo.getTwitterUser('abnicken', returnDoc = True)
+      print("Starting")
+      ner = namedEntityRecogntion(doc['bio'])
+      print("Done")
+      print(ner)
 
 
+
+=======
 if __name__ == "__main__":
 
-    u1 = {"username":"waris.gill","location":"Istanbul","image":"./images/i1.jpg","ner":["Lahore","Istanbul"],"bio":"I live in lahore."}
-    u2 = {"username":"gil.waris","location":"Istanbl","image":"./images/i2.jpg","ner":["Lahore","Istanbul","Turkey"],"bio":"My hometown is lahore."}
-
-    score = getProfileComparisonScore(u1,u2)
-    print(f"Score={score}")
 
 
-    
-    # # label, score = textSemantic("hello! I am not happy")
-    # # print(f"\n>Text Semantic Score: {score} and label: {label} ")
-    # text= ' New York (CNN)When Liana Barrientos was 23 years old, she got married in Westchester County, New York.  A year later, she got married again in Westchester County, but to a different man and without divorcing her first husband.  Only 18 days after that marriage, she got hitched yet again. Then, Barrientos declared "I do" five more times, sometimes only within two weeks of each other.  In 2010, she married once more, this time in the Bronx. In an application for a marriage license, she stated it was her "first and only" marriage.  Barrientos, now 39, is facing two criminal counts of "offering a false instrument for filing in the first degree," referring to her false statements on the  2010 marriage license application, according to court documents.  Prosecutors said the marriages were part of an immigration scam.  On Friday, she pleaded not guilty at State Supreme Court in the Bronx, according to her attorney, Christopher Wright, who declined to comment further.  After leaving court, Barrientos was arrested and charged with theft of service and criminal trespass for allegedly sneaking into the New York subway through an emergency exit, said Detective  Annette Markowski, a police spokeswoman. In total, Barrientos has been married 10 times, with nine of her marriages occurring between 1999 and 2002.  All occurred either in Westchester County, Long Island, New Jersey or the Bronx. She is believed to still be married to four men, and at one time, she was married to eight men at once, prosecutors say.  Prosecutors said the immigration scam involved some of her husbands, who filed for permanent residence status shortly after the marriages.  Any divorces happened only after such filings were approved. It was unclear whether any of the men will be prosecuted.  The case was referred to the Bronx District Attorney\'s Office by Immigration and Customs Enforcement and the Department of Homeland Security\'s  Investigation Division. Seven of the men are from so-called "red-flagged" countries, including Egypt, Turkey, Georgia, Pakistan and Mali.  Her eighth husband, Rashid Rajput, was deported in 2006 to his native Pakistan after an investigation by the Joint Terrorism Task Force.  If convicted, Barrientos faces up to four years in prison.  Her next court appearance is scheduled for May 18. '
-    # summary = textSummarization(text)
-    # # print(f"\n>Text Summary: {summary}" )
-
-    # score = textSimilarity(text,summary)
-    # print(f"\n>Text Similarity Score: {score}")
-
-    # score = imageSimilarity("./images/i1.jpg","./images/i2.jpg")
-    # # print(f"\n>Image Similarity Score: {score}")
-    # # s1 = "waris.gill"
-    # # s2 = "gil.waris"
-    # # score = usernameSimilarityScore(s1,s2)
-    # print(f"ner 2= {namedEntityRecogntion(text)}")
-    # print(f"ner 1 = {namedEntityRecogntion(summary)}")
-   
 
 
-#     print(f"Score={score}")
-    
 
-    
-    
 
-    
 
+# if __name__ == "__main__":
+
+  # u1 = {"username":"waris.gill","location":"Istanbul","ner":["Lahore","Istanbul"],"bio":"I live in lahore."}
+  # u2 = {"username":"gil.waris","location":"Istanbl","ner":["Lahore","Istanbul","Turkey"],"bio":"My hometown is lahore."}
+
+  # score = getProfileCommonComparisonScore(u1,u2)
+  # print(f"Score={score}")
+  
+db = Mongo()
+db.connect()
+
+users_dict  = db.getMatchedGroundtruth()
+
+db.terminate()
 
 #%%
+#Generate 5 random numbers between 10 and 30
+    
 
- # label, score = textSemantic("hello! I am not happy")
-    # print(f"\n>Text Semantic Score: {score} and label: {label} ")
-# text= ' New York (CNN)When Liana Barrientos was 23 years old, she got married in Westchester County, New York.  A year later, she got married again in Westchester County, but to a different man and without divorcing her first husband.  Only 18 days after that marriage, she got hitched yet again. Then, Barrientos declared "I do" five more times, sometimes only within two weeks of each other.  In 2010, she married once more, this time in the Bronx. In an application for a marriage license, she stated it was her "first and only" marriage.  Barrientos, now 39, is facing two criminal counts of "offering a false instrument for filing in the first degree," referring to her false statements on the  2010 marriage license application, according to court documents.  Prosecutors said the marriages were part of an immigration scam.  On Friday, she pleaded not guilty at State Supreme Court in the Bronx, according to her attorney, Christopher Wright, who declined to comment further.  After leaving court, Barrientos was arrested and charged with theft of service and criminal trespass for allegedly sneaking into the New York subway through an emergency exit, said Detective  Annette Markowski, a police spokeswoman. In total, Barrientos has been married 10 times, with nine of her marriages occurring between 1999 and 2002.  All occurred either in Westchester County, Long Island, New Jersey or the Bronx. She is believed to still be married to four men, and at one time, she was married to eight men at once, prosecutors say.  Prosecutors said the immigration scam involved some of her husbands, who filed for permanent residence status shortly after the marriages.  Any divorces happened only after such filings were approved. It was unclear whether any of the men will be prosecuted.  The case was referred to the Bronx District Attorney\'s Office by Immigration and Customs Enforcement and the Department of Homeland Security\'s  Investigation Division. Seven of the men are from so-called "red-flagged" countries, including Egypt, Turkey, Georgia, Pakistan and Mali.  Her eighth husband, Rashid Rajput, was deported in 2006 to his native Pakistan after an investigation by the Joint Terrorism Task Force.  If convicted, Barrientos faces up to four years in prison.  Her next court appearance is scheduled for May 18. '
-# summary = textSummarization(text)
-# print(f"\n>Text Summary: {summary}" )
+def getProfileCommonComparisonScoreDataset(u1,u2):
+    """Compares two profiles with their common features.
+    
+    The features are: username, biography, location, ner
+    Profile image is not done yet.
+    """    
+    usernameSim  = usernameSimilarityScore(u1["username"],u2["username"])
+    nameSim  = 0 if u1["name"] == '' or u2["name"] == '' else usernameSimilarityScore(u1["name"],u2["name"])
+    locationSim =  0 if u1["location"] == '' or u2["location"] == '' else locationSimilarityScore(u1["location"],u2["location"])
+    websiteSim =  0 if u1["website"] == '' or u2["website"] == '' else usernameSimilarityScore(u1["website"],u2["website"])
+    bioSim = 0 if u1["bio"] == '' or u2["bio"] == '' else textSimilarity(u1["bio"],u2["bio"])
+    birthdaySim = 0 if u1["bornAt"] == '' or u2["bornAt"] == '' else (1 if u1['bornAt'] == u2['bornAt'] else 0)
+    #img_sim_score = imageSimilarity(u1["profileImage"],u2["profileImage"]) # TODO
+    #ner_score = cosineSimilarityScore(u1["ner"],u2["ner"]) # TODO: preprocess "ner" for each user and store in the database
+    #print(f"uscore={uname_score},loc_score={loc_score},bio_score={bio_score}")
 
-# score = textSimilarity(text,summary)
-# print(f"\n>Text Similarity Score: {score}")
+    scores = {"username_sim":usernameSim, "name_sim":nameSim, "loc_sim": locationSim, 'bio_sim':bioSim, 'website_sim':websiteSim, 'birthday_sim': birthdaySim }
+    
+    return scores
 
-# score = imageSimilarity("./images/i1.jpg","./images/i2.jpg")
-# print(f"\n>Image Similarity Score: {score}")
-# s1 = "waris.gill"
-# s2 = "gil.waris"
-# score = usernameSimilarityScore(s1,s2)
+def lambdaFun(f_user, t_user):
+    d = getProfileCommonComparisonScoreDataset(f_user,t_user)
+    d["fb_username"] = f_user["username"]
+    d["tw_username"] = t_user["username"]
+    d["fb_matcher"] = f_user["matched"]
+    d["tw_matcher"] = t_user["matched"]
+    if f_user["username"] == t_user["matched"]:
+      d["Label"] = 1
+    else:
+      d["Label"] = 0
+
+    return d 
+
+def preparDatset(fb_users,twitter_users):
+  
+  li = []
+
+  for i in range(len(fb_users)):
+    f_user = fb_users[i]
+    t_user = twitter_users[i]
+    randomlist = random.sample(range(0, len(fb_users)), 6)
+    randomlist.append(i)
+    randomlist =  list(set(randomlist))
+
+    assert t_user["username"] == f_user["matched"]
 
 
-#%%
+    li += [lambdaFun(fb_users[i],twitter_users[j]) for j in randomlist]
 
+  return li
+
+
+
+
+# print(users_dict["twitter"][1]) 
+# print(users_dict["facebook"][1])
+
+d_set =  preparDatset(fb_users=users_dict["facebook"], twitter_users=users_dict["twitter"])
+
+len(d_set)
+
+
+# %%
+
+import pandas as pd
+
+df = pd.DataFrame.from_records(d_set)
+df.to_csv("dataset.csv",index=False)
 
 # %%
