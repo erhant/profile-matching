@@ -3,16 +3,16 @@ import pathlib
 
 BOILERPLATE = "ux/boilerplate.html"
 TOKENS = {
-    'title': '{{title}}',
-    'description': '{{description}}',
-    'twName': '{{twName}}',
-    'twBio': '{{twBio}}',
-    'twImageURL': '{{twImageURL}}',
-    'fbName': '{{fbName}}',
-    'fbBio': '{{fbBio}}',
-    'fbImageURL': '{{fbImageURL}}',
-    'rows': '{{tableRows}}',
-    'feature': lambda feat, weight, score : "<tr><td>"+str(feat)+"</td><td>"+str(weight)+"</td><td>"+str(score)+"</td></tr>" 
+  'title': '{{title}}',
+  'description': '{{description}}',
+  'twName': '{{twName}}',
+  'twBio': '{{twBio}}',
+  'twImageURL': '{{twImageURL}}',
+  'fbName': '{{fbName}}',
+  'fbBio': '{{fbBio}}',
+  'fbImageURL': '{{fbImageURL}}',
+  'rows': '{{tableRows}}',
+  'feature': lambda feat, score : "<tr><td>"+str(feat)+"</td><td>"+str(score)+"</td></tr>" 
 }
 
 def outputHTML(twitterUser, facebookUser, score, similarities, title = "Direct Matching"):
@@ -27,7 +27,7 @@ def outputHTML(twitterUser, facebookUser, score, similarities, title = "Direct M
   with open(BOILERPLATE, "r") as f:
     html = f.read()
   html = html.replace(TOKENS['title'], title)
-  html = html.replace(TOKENS['description'], "Profile matched with score " + str(score))
+  html = html.replace(TOKENS['description'], "Profile matched with score (or probability) " + str(score))
   html = html.replace(TOKENS['twName'], twitterUser['username'])
   html = html.replace(TOKENS['twBio'], twitterUser['bio'])
   html = html.replace(TOKENS['twImageURL'], twitterUser['profileImage'])
@@ -36,7 +36,7 @@ def outputHTML(twitterUser, facebookUser, score, similarities, title = "Direct M
   html = html.replace(TOKENS['fbImageURL'], facebookUser['profileImage'])
   rows = ""
   for feat in similarities:
-    rows += TOKENS['feature'](feat, similarities[feat]['weight'], similarities[feat]['score'])
+    rows += TOKENS['feature'](feat, similarities[feat])
   html = html.replace(TOKENS['rows'], rows)
   filename = twitterUser['username'] + "-" + facebookUser["username"]
   with open("ux/"+filename+".html", "w") as f:

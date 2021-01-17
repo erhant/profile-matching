@@ -1,26 +1,20 @@
-#%%
-#import re
 from sklearn import datasets
 from transformers import pipeline
 from mongo import Mongo
-#from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from sentence_transformers import SentenceTransformer, util
-#import torch
-# import tensorflow as tf
 from SSIM_PIL import compare_ssim
 from PIL import Image
-#from skimage.measure import compare_ssim
-#import matplotlib.pyplot as plt
-#import nltk
-#from nltk.util import ngrams
-#import numpy as np
+import numpy as np
+import pandas as pd
 import random
 import cv2
 from pyjarowinkler import distance
 from strsimpy.cosine import Cosine
 from ux import outputHTML
+from ml import Classifier
 
-def imageSimilarity(image1_path, image2_path):
+# Not used because facebook URLs are expired.
+def __imageSimilarity(image1_path, image2_path):
     """Compares two images using SSIM.
     
     The images must be JPG (TODO: Improve this to work with any of them). 
@@ -40,6 +34,31 @@ def imageSimilarity(image1_path, image2_path):
 
     return ssim_score
 
+# Not used by our work.
+def __textSummarization(text):
+    #text:  concatenated posts and tweets as a single string
+    summarizer = pipeline("summarization")
+    # print("hello how are you")
+    str_l = len(text.split(' '))
+    min_len =int(str_l* 0.95)
+    max_len = str_l
+    summary = summarizer(text,max_length=max_len, min_length=min_len, do_sample=False)[0]['summary_text']
+    return summary
+
+# Not used by our work.
+def __textSemantic(text):
+    classifier = pipeline('sentiment-analysis')
+    r_dict = classifier(text)[0]
+    return r_dict["label"],r_dict["score"] 
+
+# Not used by our work. 
+def __namedEntityRecogntion(text):
+    ner = pipeline("ner")
+    output = ner(text)
+    
+    result = [d["word"] for d in output]
+    return result
+  
 def textSimilarity(text1, text2): # get the similarity score.
     """Compare two texts using BERT model. 
     
@@ -54,28 +73,7 @@ def textSimilarity(text1, text2): # get the similarity score.
     cosine_scores = util.pytorch_cos_sim(embeddings1,embeddings2)
     # cosine_scores
     return cosine_scores[0].item()
-
-def textSummarization(text):
-    #text:  concatenated posts and tweets as a single string
-    summarizer = pipeline("summarization")
-    # print("hello how are you")
-    str_l = len(text.split(' '))
-    min_len =int(str_l* 0.95)
-    max_len = str_l
-    summary = summarizer(text,max_length=max_len, min_length=min_len, do_sample=False)[0]['summary_text']
-    return summary
-
-
-def textSemantic(text=None): # maybe compare headline with tweets?
-    """Conducts semantic analysis on a text
-       
-    TODO: Returns what?
-    """
-    classifier = pipeline('sentiment-analysis')
-    r_dict = classifier(text)[0]
-    return r_dict["label"],r_dict["score"] 
-
-
+  
 def usernameSimilarityScore(uname1, uname2):
     """Compare usernames using Jaro distance.
        
@@ -90,20 +88,11 @@ def locationSimilarityScore(loc1, loc2):
     """Compare location texts using Jaro distance.
        
     Returns a score between 0 and 1, where 1 means exact match.
-    TODO: Google API can be used to obtain coordinates and measure similarity with that too.
     """
     if loc1 == loc2:
         return 1 # matched exatcly
     else:
         return distance.get_jaro_distance(loc1,loc2,winkler=False)
-
-
-def namedEntityRecogntion(text):
-    ner = pipeline("ner")
-    output = ner(text)
-    
-    result = [d["word"] for d in output]
-    return result
 
 def cosineSimilarityScore(l1,l2):
     d1 = {k:1 for k in l1}
@@ -115,115 +104,170 @@ def cosineSimilarityScore(l1,l2):
 
 
 def getProfileCommonComparisonScore(u1,u2):
-       
-    similarities = {
-      'username': {
-        'score': usernameSimilarityScore(u1["username"],u2["username"]),
-        'weight': 0.85
-      },
-      'name': {
-        'score': 0 if u1["name"] == '' or u2["name"] == '' else usernameSimilarityScore(u1["name"],u2["name"]),
-        'weight': 0.8
-      },
-      'location': {
-        'score': 0 if u1["location"] == '' or u2["location"] == '' else locationSimilarityScore(u1["location"],u2["location"]),
-        'weight': 0.65
-      },
-      'website': {
-        'score': 0 if u1["website"] == '' or u2["website"] == '' else usernameSimilarityScore(u1["website"],u2["website"]),
-        'weight': 0.4
-      },
-      'bio': {
-        'score': 0 if u1["bio"] == '' or u2["bio"] == '' else textSimilarity(u1["bio"],u2["bio"]),
-        'weight': 0.65
-      },
-      'birthday': {
-        'score': 0 if u1["bornAt"] == '' or u2["bornAt"] == '' else (1 if u1['bornAt'] == u2['bornAt'] else 0),
-        'weight': 0.4
-      },
-      #'image':{ # Cant do this because facebook profile image URL's are expired!
-      #  'score': 0 if u1["profileImage"] == '' or u2["profileImage"] == '' else imageSimilarity(u1["profileImage"],u2["profileImage"]),
-      #  'weight': 0.0
-      #},
-      #'ner': {
-      #  'score': 0 if u1["ner"] == [] or u2["ner"] == [] else cosineSimilarityScore(u1["ner"],u2["ner"]),
-      #  'weight': 0.0
-      #},
+    
+    weights = {
+      'username': 0.85,
+      'name': 0.8,
+      'location': 0.65,
+      'website':  0.4,
+      'bio': 0.65,
+      'birthday': 0.4
     }
     
+    similarities = {
+      'username': usernameSimilarityScore(u1["username"],u2["username"]),
+      'name':  0 if u1["name"] == '' or u2["name"] == '' else usernameSimilarityScore(u1["name"],u2["name"]),
+      'location':  0 if u1["location"] == '' or u2["location"] == '' else locationSimilarityScore(u1["location"],u2["location"]),
+      'website':  0 if u1["website"] == '' or u2["website"] == '' else usernameSimilarityScore(u1["website"],u2["website"]),
+      'bio':  0 if u1["bio"] == '' or u2["bio"] == '' else textSimilarity(u1["bio"],u2["bio"]),
+      'birthday': 0 if u1["bornAt"] == '' or u2["bornAt"] == '' else (1 if u1['bornAt'] == u2['bornAt'] else 0)
+    }
     
-    totalScore = sum([similarities[f]['score']*similarities[f]['weight'] for f in similarities]) / sum([similarities[f]['weight'] for f in similarities])
-    
+    totalScore = sum([similarities[f]*weights[f] for f in similarities]) / sum([weights[f] for f in similarities])
+      
     return totalScore, similarities
 
+def trainModel(ground_truth, save_dataset_csv=True, use_existing=True):
+      def makePair(f_user, t_user):
+        _, d = getProfileCommonComparisonScore(f_user,t_user)
+        d["fb_id"] = f_user["username"]
+        d["tw_id"] = t_user["username"]
+        d["fb_match"] = f_user["matched"]
+        d["tw_match"] = t_user["matched"]
+        d["Label"] = int(f_user["username"] == t_user["matched"]) # labels are 1 or 0
+        return d
 
-
-
-
+      def prepareDatset(fb_users, twitter_users, num_random_samples=6):
+        li = []
+        num_users = min(len(fb_users),len(twitter_users))
+        for i in range(num_users):
+          # 1 matching pair
+          f_user = fb_users[i]
+          t_user = twitter_users[i]
+          assert t_user["username"] == f_user["matched"]
+          
+          # num_random_samples non-matching pairs
+          randomlist = random.sample(range(0, len(fb_users)), num_random_samples)
+          randomlist.append(i)
+          randomlist =  list(set(randomlist)) # avoid duplicates
+          li += [makePair(fb_users[i],twitter_users[j]) for j in randomlist]
+          
+          if i % int(num_users / 10) == 0:
+            print("Processed [",i,"/",num_users,"]")
+          
+        return li
     
+      ####
+      print("Preparing dataset.")
+      if use_existing:
+        df = pd.read_csv("dataset.csv") # dataset.csv
+      else:
+        d_set = prepareDatset(fb_users=ground_truth["facebook"], twitter_users=ground_truth["twitter"])
+        df = pd.DataFrame.from_records(d_set)
+        print("Created dataset:",df.shape)
+        if save_dataset_csv:
+          print("Saving csv...")
+          df.to_csv("dataset.csv",index=False)
+      featureNames = ['username', 'name', 'location', 'website', 'bio', 'birthday']
+      labelName = 'Label'
+      classifier = Classifier(df, featureNames, labelName)
+      model = classifier.makeModel()
+      return model
     
-    
-    
-    
-    
-
- 
-
-
-
 class Matcher:
     def __init__(self, mongo):
         self.mongo = mongo # mongo interface to be used by matcher
-        self.Twitter = mongo.getAllUsers(coll=mongo.TWITTER)
-        self.Facebook = mongo.getAllUsers(coll=mongo.FACEBOOK)
+        self.Twitter = mongo.getAllUsers(coll=mongo.TWITTER) # twitter data
+        self.Facebook = mongo.getAllUsers(coll=mongo.FACEBOOK) # facebook data
+        self.model = trainModel(mongo.getMatchedGroundtruth()) # ML model for direct matching
         
-    def findMatchForTwitterUser(self, username):
-      print("Finding a match for Twitter user:",username)
+    def findMatchForTwitterUser(self, username, useML=False):
+      print("Finding a direct match for Twitter user:",username)
       sourceUser = self.mongo.getTwitterUser(username)
       
-      # Search the DB batch by batch
       maxScore = 0
       maxSims = {}
       targetUser = None
       count = 1
-      for candidate in self.Facebook:
-        score, sims = getProfileCommonComparisonScore(sourceUser,candidate)
-        if score > maxScore:
-          print("\tBetter match found with score",score)
-          targetUser = candidate
-          maxScore = score
-          maxSims = sims
+      for candidate in self.Facebook:        
+        if useML:
+          _, sims = getProfileCommonComparisonScore(sourceUser,candidate)
+          f = []
+          for s in sims:
+            f.append(sims[s])
+          f = np.array(f).reshape((1, -1))
+          pred = self.model.predict_proba(f)
+          pred = pred[0]
+          if pred[1] > pred[0]:
+            if pred[1] > maxScore:              
+              print("\tBetter match found with probability",pred[1])
+              targetUser = candidate
+              maxScore = pred[1]
+              maxSims = sims
+        else:
+          score, sims = getProfileCommonComparisonScore(sourceUser,candidate)
+          if score > maxScore:
+            print("\tBetter match found with score",score)
+            targetUser = candidate
+            maxScore = score
+            maxSims = sims
         if count % 75 == 0:
           print("\tProcessed [",count,",",len(self.Twitter),"]")
         count += 1
         
-      return {'facebookUser': targetUser, 'twitterUser': sourceUser, 'score': maxScore, 'similarities': maxSims}
+      if targetUser == None:
+        print("Could not match this user!")
+        return {}
+      else:
+        print("Match found!")
+        outputHTML(sourceUser, targetUser, maxScore, maxSims, title = "Direct Match" + (" with ML" if useML else ""))
+        return {'facebookUser': targetUser, 'twitterUser': sourceUser, 'score': maxScore, 'similarities': maxSims}
     
-    def findMatchForFacebookUser(self, username):
-      print("Finding a match for Facebook user:",username)
+    def findMatchForFacebookUser(self, username, useML=False):
+      print("Finding a direct match for Facebook user:",username)
       sourceUser = self.mongo.getFacebookUser(username)
       
-      # Search the DB batch by batch
       maxScore = 0
       maxSims = {}
       targetUser = None
       count = 1
       for candidate in self.Twitter:
-        score, sims = getProfileCommonComparisonScore(sourceUser,candidate)
-        if score > maxScore:
-          print("\tBetter match found with score",score)
-          targetUser = candidate
-          maxScore = score
-          maxSims = sims
+        if useML:
+          _, sims = getProfileCommonComparisonScore(sourceUser,candidate)
+          f = []
+          for s in sims:
+            f.append(sims[s])
+          f = np.array(f).reshape((1, -1))
+          pred = self.model.predict_proba(f)
+          pred = pred[0]
+          if pred[1] > pred[0]:
+            if pred[1] > maxScore:              
+              print("\tBetter match found with probability",pred[1])
+              targetUser = candidate
+              maxScore = pred[1]
+              maxSims = sims
+        else:
+          score, sims = getProfileCommonComparisonScore(sourceUser,candidate)
+          if score > maxScore:
+            print("\tBetter match found with score",score)
+            targetUser = candidate
+            maxScore = score
+            maxSims = sims
         if count % 75 == 0:
           print("\tProcessed [",count,",",len(self.Twitter),"]")
         count += 1
         
-      return {'facebookUser': sourceUser, 'twitterUser': targetUser, 'score': maxScore, 'similarities': maxSims}
+      if targetUser == None:
+        print("Could not match this user!")
+        return {}
+      else:
+        print("Match found!")
+        outputHTML(targetUser, sourceUser, maxScore, maxSims, title = "Direct Match" + (" with ML" if useML else ""))
+        return {'facebookUser': sourceUser, 'twitterUser': targetUser, 'score': maxScore, 'similarities': maxSims}
     
     
-    def findIndirectMatchForTwitterUser(self, username):
-      # Get user
+    def findIndirectMatchForTwitterUser(self, username, useML=False):
+      print("Finding an indirect match for Twitter user:",username)
       sourceUser = self.mongo.getTwitterUser(username)
       
       # Get friends
@@ -234,7 +278,7 @@ class Matcher:
       
       # Find direct matches of the followers
       print("Found",len(followers),"followers in DB. Finding their direct matches...")
-      candidateMatches = [self.findMatchForTwitterUser(f) for f in followers]
+      candidateMatches = [self.findMatchForTwitterUser(f, useML=useML) for f in followers]
       candidateMatches = [c['facebookUser'] for c in candidateMatches]
       
       # Find common friends on all matched facebook profiles
@@ -254,15 +298,20 @@ class Matcher:
           maxCandidate = candidates[c]
           targetUsername = c
           
-      # Retrieve the target
-      mostSimilarUser = self.mongo.getFacebookUser(targetUsername)
-      
-      # Also calculate their similarity
-      score, sims = getProfileCommonComparisonScore(sourceUser, mostSimilarUser)
-      return {'facebookUser': mostSimilarUser, 'twitterUser': sourceUser, 'score': score, 'similarities': sims}
+      if targetUsername == None:
+        print("Could not match this user!")
+        return {}
+      else:
+        print("Match found!")
+        # Retrieve the target
+        mostSimilarUser = self.mongo.getFacebookUser(targetUsername)        
+        # Also calculate their similarity
+        score, sims = getProfileCommonComparisonScore(sourceUser, mostSimilarUser, weighted=(not useML))        
+        outputHTML(sourceUser, mostSimilarUser, score, sims, title = "Indirect Match" + (" with ML" if useML else ""))
+        return {'facebookUser': mostSimilarUser, 'twitterUser': sourceUser, 'score': score, 'similarities': sims}
     
-    def findIndirectMatchForFacebookUser(self, username):     
-      # Get user
+    def findIndirectMatchForFacebookUser(self, username, useML=False):    
+      print("Finding an indirect match for Facebook user:",username)
       sourceUser = self.mongo.getFacebookUser(username)
       
       # Get friends
@@ -273,7 +322,7 @@ class Matcher:
       
       # Find direct matches of the friends
       print("Found",len(friends),"friends in DB. Finding their direct matches...")
-      candidateMatches = [self.findMatchForFacebookUser(f) for f in friends]
+      candidateMatches = [self.findMatchForFacebookUser(f, useML=useML) for f in friends]
       candidateMatches = [c['twitterUser'] for c in candidateMatches]
       
       # Find common followers on matched twitter profiles
@@ -293,49 +342,20 @@ class Matcher:
           maxCandidate = candidates[c]
           targetUsername = c
           
-      # Retrieve the target
-      mostSimilarUser = self.mongo.getTwitterUser(targetUsername)
+      if targetUsername == None:
+        print("Could not match this user!")
+        return {}
+      else:
+        print("Match found!")
+        # Retrieve the target
+        mostSimilarUser = self.mongo.getTwitterUser(targetUsername)        
+        # Also calculate their similarity
+        score, sims = getProfileCommonComparisonScore(sourceUser, mostSimilarUser, weighted=(not useML))        
+        outputHTML(mostSimilarUser, sourceUser, score, sims, title = "Indirect Match" + (" with ML" if useML else ""))
+        return {'facebookUser': sourceUser, 'twitterUser': mostSimilarUser, 'score': score, 'similarities': sims}    
       
-      # Also calculate their similarity
-      score, sims = getProfileCommonComparisonScore(sourceUser, mostSimilarUser)
-      return {'facebookUser': sourceUser, 'twitterUser': mostSimilarUser, 'score': score, 'similarities': sims}
-    
-    def outputMatch(self, match):
-      outputHTML(match['twitterUser'], match['facebookUser'], match['score'], match['similarities'])
-      print("HTML Created. Opening...")
-      
-    def compareUsers(self, user1, user2):
-      return getProfileCommonComparisonScore(user1,user2)
-    
-    # @erhan
-    def evaluateGroundTruth():
-      # try to match twitter groundtruth users to facebook users
-      return 1 # TODO
-    
-    # @waris
-    def populateNERs(self):
-      # {"ner": {"$exists": False}}  
-      #batchNo = 0
-      #userCount = self.mongo.getCount(self.mongo.TWITTER)
-      #while batchNo * batchSize < userCount:
-      
-      # For twitter, extract ner from biography
-      # For facebook, extract ner from biography+"\n"+education+"\n"+work
-      # Update the user docs with the ners, the field ise "ner".
-      
-      # get ner with: namedEntityRecogntion(texthere)
-      
-      # thank you!
-      _, doc = self.mongo.getTwitterUser('abnicken', returnDoc = True)
-      print("Starting")
-      ner = namedEntityRecogntion(doc['bio'])
-      print("Done")
-      print(ner)
-
-
-
-=======
 if __name__ == "__main__":
+  print("main")
 
 
 
@@ -344,92 +364,7 @@ if __name__ == "__main__":
 
 
 
-# if __name__ == "__main__":
-
-  # u1 = {"username":"waris.gill","location":"Istanbul","ner":["Lahore","Istanbul"],"bio":"I live in lahore."}
-  # u2 = {"username":"gil.waris","location":"Istanbl","ner":["Lahore","Istanbul","Turkey"],"bio":"My hometown is lahore."}
-
-  # score = getProfileCommonComparisonScore(u1,u2)
-  # print(f"Score={score}")
-  
-db = Mongo()
-db.connect()
-
-users_dict  = db.getMatchedGroundtruth()
-
-db.terminate()
-
-#%%
-#Generate 5 random numbers between 10 and 30
-    
-
-def getProfileCommonComparisonScoreDataset(u1,u2):
-    """Compares two profiles with their common features.
-    
-    The features are: username, biography, location, ner
-    Profile image is not done yet.
-    """    
-    usernameSim  = usernameSimilarityScore(u1["username"],u2["username"])
-    nameSim  = 0 if u1["name"] == '' or u2["name"] == '' else usernameSimilarityScore(u1["name"],u2["name"])
-    locationSim =  0 if u1["location"] == '' or u2["location"] == '' else locationSimilarityScore(u1["location"],u2["location"])
-    websiteSim =  0 if u1["website"] == '' or u2["website"] == '' else usernameSimilarityScore(u1["website"],u2["website"])
-    bioSim = 0 if u1["bio"] == '' or u2["bio"] == '' else textSimilarity(u1["bio"],u2["bio"])
-    birthdaySim = 0 if u1["bornAt"] == '' or u2["bornAt"] == '' else (1 if u1['bornAt'] == u2['bornAt'] else 0)
-    #img_sim_score = imageSimilarity(u1["profileImage"],u2["profileImage"]) # TODO
-    #ner_score = cosineSimilarityScore(u1["ner"],u2["ner"]) # TODO: preprocess "ner" for each user and store in the database
-    #print(f"uscore={uname_score},loc_score={loc_score},bio_score={bio_score}")
-
-    scores = {"username_sim":usernameSim, "name_sim":nameSim, "loc_sim": locationSim, 'bio_sim':bioSim, 'website_sim':websiteSim, 'birthday_sim': birthdaySim }
-    
-    return scores
-
-def lambdaFun(f_user, t_user):
-    d = getProfileCommonComparisonScoreDataset(f_user,t_user)
-    d["fb_username"] = f_user["username"]
-    d["tw_username"] = t_user["username"]
-    d["fb_matcher"] = f_user["matched"]
-    d["tw_matcher"] = t_user["matched"]
-    if f_user["username"] == t_user["matched"]:
-      d["Label"] = 1
-    else:
-      d["Label"] = 0
-
-    return d 
-
-def preparDatset(fb_users,twitter_users):
-  
-  li = []
-
-  for i in range(len(fb_users)):
-    f_user = fb_users[i]
-    t_user = twitter_users[i]
-    randomlist = random.sample(range(0, len(fb_users)), 6)
-    randomlist.append(i)
-    randomlist =  list(set(randomlist))
-
-    assert t_user["username"] == f_user["matched"]
-
-
-    li += [lambdaFun(fb_users[i],twitter_users[j]) for j in randomlist]
-
-  return li
 
 
 
 
-# print(users_dict["twitter"][1]) 
-# print(users_dict["facebook"][1])
-
-d_set =  preparDatset(fb_users=users_dict["facebook"], twitter_users=users_dict["twitter"])
-
-len(d_set)
-
-
-# %%
-
-import pandas as pd
-
-df = pd.DataFrame.from_records(d_set)
-df.to_csv("dataset.csv",index=False)
-
-# %%

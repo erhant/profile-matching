@@ -1,7 +1,6 @@
 from sshtunnel import SSHTunnelForwarder
 import pymongo
 from dateutil.parser import parse as parseDate
-import requests
 
 # adapted from https://gist.github.com/JinhaiZ/3ad536870b9853dbff11ab4241380c0d
 
@@ -10,7 +9,7 @@ DEFAULT_MONGO_CREDS = {
   "MONGO_HOST": "209.250.251.192",
   "MONGO_USER": "root",
   "MONGO_PASS": "PASSWORD",
-  "PKEY_PATH": "/home/waris/.ssh/id_rsa",
+  "PKEY_PATH": "C:/Users/ASUS/.ssh/id_rsa",
   "PKEY_PASS" : "",
   "MONGO_DB": "last-facebook-twitter"
 }
@@ -182,8 +181,7 @@ class Mongo:
       # Specials
       user['username'] = doc['_id']
       user['tweets'] = doc['tweets']
-      user['followers'] = [] # todo @Mandana
-      user['following'] = [] #todo @Mandana
+      user['followers'] = doc['followerids']
       #user['handle'] = doc['handle'] # Redundant
       if doc['joined'] != "":
         user['joinedAt'] = parseDate(doc['joined'][7:])
