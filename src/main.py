@@ -1,7 +1,7 @@
 from mongo import Mongo
 from matcher import Matcher
 
-METHOD = "ML_direct_tw" # edit this depending on your need
+METHOD = "ML_direct_fb" # edit this depending on your need
 
 mon = Mongo()
 mon.connect()
@@ -27,7 +27,7 @@ else:
     match = matcher.findIndirectMatchForTwitterUser('PerlmanOfficial', useML=False)
     
   elif METHOD == "ML_direct_fb":
-    match = matcher.findMatchForFacebookUser('timurban80')
+    match = matcher.findMatchForFacebookUser('pwnslinger')
     
   elif METHOD == "ML_direct_tw":
     match = matcher.findMatchForTwitterUser('PerlmanOfficial')
@@ -49,9 +49,11 @@ Some example users:
   Twitter:
     PerlmanOfficial
     waitbutwhy
+    pwnslinger
     
   Facebook:
     Itzhakperlmanofficial
     timurban80
+    pwnslinger
     
 '''
