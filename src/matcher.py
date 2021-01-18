@@ -1,6 +1,4 @@
-from sklearn import datasets
 from transformers import pipeline
-from mongo import Mongo
 from sentence_transformers import SentenceTransformer, util
 from SSIM_PIL import compare_ssim
 from PIL import Image
@@ -12,47 +10,47 @@ from pyjarowinkler import distance
 from strsimpy.cosine import Cosine
 from ux import outputHTML
 from ml import Classifier
+import time
 
-# Not used because facebook URLs are expired.
 def __imageSimilarity(image1_path, image2_path):
-    """Compares two images using SSIM.
+    """(NOT USED) Compares two images using SSIM. 
     
     The images must be JPG (TODO: Improve this to work with any of them). 
-    """
-    
+    We do not use it because facebook image URLs have expired.
+    """    
     Image.open(image1_path).resize((224,224)).save(image1_path)
     Image.open(image2_path).resize((224,224)).save(image2_path)
-
     image1 = cv2.imread(image1_path)
-    image2 = cv2.imread(image2_path)
-    
+    image2 = cv2.imread(image2_path)    
     # convert the images to grayscale
     image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
-    image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
-    
+    image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)    
     ssim_score = compare_ssim(image1,image2)  
-
     return ssim_score
 
-# Not used by our work.
 def __textSummarization(text):
-    #text:  concatenated posts and tweets as a single string
-    summarizer = pipeline("summarization")
-    # print("hello how are you")
+    '''(NOT USED) Summarize a text using summarization pipeline.
+    
+    '''    
+    summarizer = pipeline("summarization") #text:  concatenated posts and tweets as a single string
     str_l = len(text.split(' '))
     min_len =int(str_l* 0.95)
     max_len = str_l
     summary = summarizer(text,max_length=max_len, min_length=min_len, do_sample=False)[0]['summary_text']
     return summary
 
-# Not used by our work.
 def __textSemantic(text):
+    '''(NOT USED) Does sentiment analysis on a given text.
+    
+    '''    
     classifier = pipeline('sentiment-analysis')
     r_dict = classifier(text)[0]
     return r_dict["label"],r_dict["score"] 
 
-# Not used by our work. 
 def __namedEntityRecogntion(text):
+    '''(NOT USED) Extracts named entities from a given text.
+    
+    '''    
     ner = pipeline("ner")
     output = ner(text)
     
@@ -95,6 +93,9 @@ def locationSimilarityScore(loc1, loc2):
         return distance.get_jaro_distance(loc1,loc2,winkler=False)
 
 def cosineSimilarityScore(l1,l2):
+    '''Measure the cosie similarity between two lists.
+     
+    '''
     d1 = {k:1 for k in l1}
     d2 = {k:1 for k in l2}
     cosine = Cosine(2)
@@ -103,8 +104,11 @@ def cosineSimilarityScore(l1,l2):
     return score
 
 
-def getProfileCommonComparisonScore(u1,u2):
-    
+def getProfileCommonComparisonScore(u1,u2):    
+    '''This is the main similarity calculation method. 
+  
+    The weights that are set here are used only in the naive method, and they contribute to total score only. If ML is being used, the total score is ignored, and the probability obtained by the model is considered the score instead.
+    '''
     weights = {
       'username': 0.85,
       'name': 0.8,
@@ -120,7 +124,7 @@ def getProfileCommonComparisonScore(u1,u2):
       'location':  0 if u1["location"] == '' or u2["location"] == '' else locationSimilarityScore(u1["location"],u2["location"]),
       'website':  0 if u1["website"] == '' or u2["website"] == '' else usernameSimilarityScore(u1["website"],u2["website"]),
       'bio':  0 if u1["bio"] == '' or u2["bio"] == '' else textSimilarity(u1["bio"],u2["bio"]),
-      'birthday': 0 if u1["bornAt"] == '' or u2["bornAt"] == '' else (1 if u1['bornAt'] == u2['bornAt'] else 0)
+      'birthday': 0 if (u1["bornAt"] == None or u2["bornAt"] == None) else (1 if u1['bornAt'] == u2['bornAt'] else 0)
     }
     
     totalScore = sum([similarities[f]*weights[f] for f in similarities]) / sum([weights[f] for f in similarities])
@@ -181,9 +185,14 @@ class Matcher:
         self.Facebook = mongo.getAllUsers(coll=mongo.FACEBOOK) # facebook data
         self.model = trainModel(mongo.getMatchedGroundtruth()) # ML model for direct matching
         
-    def findMatchForTwitterUser(self, username, useML=False):
+    def findMatchForTwitterUser(self, username, useML=True):
+      '''Find a direct match for the given twitter user in facebook.
+      
+      Takes a kwarg useML, which is a bool that lets you decide if you would like to use ML model or not.
+      '''
       print("Finding a direct match for Twitter user:",username)
       sourceUser = self.mongo.getTwitterUser(username)
+      start = time.time()
       
       maxScore = 0
       maxSims = {}
@@ -212,9 +221,10 @@ class Matcher:
             maxScore = score
             maxSims = sims
         if count % 75 == 0:
-          print("\tProcessed [",count,",",len(self.Twitter),"]")
+          print("\tProcessed [",count,",",len(self.Facebook),"]","in",time.time()-start,"sec.")
         count += 1
         
+      print("\tProcessed [",len(self.Facebook),",",len(self.Facebook),"]","in",time.time()-start,"sec.")
       if targetUser == None:
         print("Could not match this user!")
         return {}
@@ -223,10 +233,15 @@ class Matcher:
         outputHTML(sourceUser, targetUser, maxScore, maxSims, title = "Direct Match" + (" with ML" if useML else ""))
         return {'facebookUser': targetUser, 'twitterUser': sourceUser, 'score': maxScore, 'similarities': maxSims}
     
-    def findMatchForFacebookUser(self, username, useML=False):
+    def findMatchForFacebookUser(self, username, useML=True):
+      '''Find a direct match for the given facebook user in twitter.
+      
+      Takes a kwarg useML, which is a bool that lets you decide if you would like to use ML model or not.
+      '''
       print("Finding a direct match for Facebook user:",username)
       sourceUser = self.mongo.getFacebookUser(username)
-      
+      start = time.time()
+       
       maxScore = 0
       maxSims = {}
       targetUser = None
@@ -254,9 +269,10 @@ class Matcher:
             maxScore = score
             maxSims = sims
         if count % 75 == 0:
-          print("\tProcessed [",count,",",len(self.Twitter),"]")
+          print("\tProcessed [",count,",",len(self.Twitter),"]","in",time.time()-start,"sec.")
         count += 1
         
+      print("\tProcessed [",len(self.Twitter),",",len(self.Twitter),"]","in",time.time()-start,"sec.")
       if targetUser == None:
         print("Could not match this user!")
         return {}
@@ -266,7 +282,11 @@ class Matcher:
         return {'facebookUser': sourceUser, 'twitterUser': targetUser, 'score': maxScore, 'similarities': maxSims}
     
     
-    def findIndirectMatchForTwitterUser(self, username, useML=False):
+    def findIndirectMatchForTwitterUser(self, username, useML=True):
+      '''Indirectly match a twitter user, by finding direct matches of their followers.
+      
+      Takes a kwarg useML, which is a bool that lets you decide if you would like to use ML model or not.
+      '''
       print("Finding an indirect match for Twitter user:",username)
       sourceUser = self.mongo.getTwitterUser(username)
       
@@ -310,7 +330,11 @@ class Matcher:
         outputHTML(sourceUser, mostSimilarUser, score, sims, title = "Indirect Match" + (" with ML" if useML else ""))
         return {'facebookUser': mostSimilarUser, 'twitterUser': sourceUser, 'score': score, 'similarities': sims}
     
-    def findIndirectMatchForFacebookUser(self, username, useML=False):    
+    def findIndirectMatchForFacebookUser(self, username, useML=True):    
+      '''Indirectly match a facebook user, by finding direct matches of their friends.
+      
+      Takes a kwarg useML, which is a bool that lets you decide if you would like to use ML model or not.
+      '''
       print("Finding an indirect match for Facebook user:",username)
       sourceUser = self.mongo.getFacebookUser(username)
       
@@ -353,18 +377,3 @@ class Matcher:
         score, sims = getProfileCommonComparisonScore(sourceUser, mostSimilarUser, weighted=(not useML))        
         outputHTML(mostSimilarUser, sourceUser, score, sims, title = "Indirect Match" + (" with ML" if useML else ""))
         return {'facebookUser': sourceUser, 'twitterUser': mostSimilarUser, 'score': score, 'similarities': sims}    
-      
-if __name__ == "__main__":
-  print("main")
-
-
-
-
-
-
-
-
-
-
-
-

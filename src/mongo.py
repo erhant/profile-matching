@@ -2,15 +2,13 @@ from sshtunnel import SSHTunnelForwarder
 import pymongo
 from dateutil.parser import parse as parseDate
 
-# adapted from https://gist.github.com/JinhaiZ/3ad536870b9853dbff11ab4241380c0d
+# connection script adapted from https://gist.github.com/JinhaiZ/3ad536870b9853dbff11ab4241380c0d
 
 ## PARAMS
 DEFAULT_MONGO_CREDS = {
   "MONGO_HOST": "209.250.251.192",
-  "MONGO_USER": "root",
-  "MONGO_PASS": "PASSWORD",
-  "PKEY_PATH": "C:/Users/ASUS/.ssh/id_rsa",
-  "PKEY_PASS" : "",
+  "SSH_USER": "demouser",
+  "SSH_PASS" : "thanksgoditsfriday",
   "MONGO_DB": "last-facebook-twitter"
 }
 FACEBOOK = "Facebook"
@@ -29,9 +27,8 @@ class Mongo:
       # define ssh tunnel
       self.tunnel = SSHTunnelForwarder(
         self.creds['MONGO_HOST'],
-        ssh_username=self.creds['MONGO_USER'],
-        ssh_pkey=self.creds['PKEY_PATH'],
-        ssh_private_key_password=self.creds['PKEY_PASS'],
+        ssh_username=self.creds['SSH_USER'],
+        ssh_password=self.creds['SSH_PASS'],
         remote_bind_address=('127.0.0.1', 27017)
       )
   
@@ -84,6 +81,9 @@ class Mongo:
         return list(self.db[coll].find(query).sort("_id").skip(batchNo * batchSize).limit(batchSize))
       
     def getAllUsers(self, coll = FACEBOOK):
+      '''Returns all users from database.
+      
+      '''
       if coll == FACEBOOK:
         return list(map(lambda doc: self.__processFacebookDoc(doc), list(self.db[coll].find({}))))
       else:        
@@ -91,6 +91,10 @@ class Mongo:
       
     
     def getMatchedGroundtruth(self):
+      '''Returns matched users from database.
+      
+      The result is a dictionary with keys twitter and faceook, each having an equal length array where the same index on both arrays correspond to a matching user.
+      '''
       # Returns a tuple as (twitterUser, facebookUser)
       print("Getting Twitter users with known matches...")
       twitterUsers = list(map(lambda doc: self.__processTwitterDoc(doc), list(self.db[TWITTER].find({"matched": {"$ne": None}}))))
@@ -99,6 +103,10 @@ class Mongo:
       return {'twitter': twitterUsers, 'facebook': facebookUsers}
     
     def __processFacebookDoc(self, doc):
+      '''Converts a mongo document into user dictionary for matcher.
+      
+      It appends the headline to biography of the user.
+      '''
       user = {}
       if doc == None:
         return None
@@ -109,30 +117,29 @@ class Mongo:
       user['location'] = doc['location'] 
       user['website'] = doc['website'] 
       user['bio'] = doc['bio'] + doc['site'] # 'site' is like a short biography
-      if doc['photo'] != "":
-        user['profileImage'] = doc['photo'] # requests.get(doc['photo']) # todo process image
+      if doc['photo'] != "" and doc['photo'] != None:
+        user['profileImage'] = doc['photo']
       else:
-        user['profileImage'] = None
+        user['profileImage'] = ""
       try:
         user['matched'] = doc['matched']
       except:
         user['matched'] = None
       user['sourceCollection'] = FACEBOOK
       try:
-        user['bornAt'] = parseDate(doc['birthdate'][:-10]) # todo: remove Born and convert to date
+        user['bornAt'] = parseDate(doc['birthdate'][:-10]) # remove Born and convert to date
       except:
         user['bornAt'] = None
-      #user['ner'] = doc['ner'] # we added this to save computation time
       
       # Specials
       try:
         user['friends'] = list(map(lambda f : f[25:], doc['friends']))
       except:
         user['friends'] = []
-      if doc['bg'] != "":
-        user['backgroundImage'] = doc['bg'] #requests.get(doc['bg'])
+      if doc['bg'] != "" and doc['bg'] != None:
+        user['backgroundImage'] = doc['bg']
       else:
-        user['backgroundImage'] = None
+        user['backgroundImage'] = ""
       user['education'] = ""
       if ('education' in doc and len(doc['education']) > 0):
         user['education'] += doc['education'][0] + "\n"
@@ -153,6 +160,9 @@ class Mongo:
       return user
     
     def __processTwitterDoc(self, doc):
+      '''Converts a mongo document into user dictionary for matcher.
+      
+      '''
       user = {}
       if doc == None:
         return None
@@ -163,26 +173,24 @@ class Mongo:
       user['location'] = doc['location'] 
       user['website'] = doc['site'] 
       user['bio'] = doc['bio']
-      if doc['photo'] != "":
-        user['profileImage'] = doc['photo'] #requests.get(doc['photo']) # todo process image
+      if doc['photo'] != "" and doc['photo'] != None:
+        user['profileImage'] = doc['photo']
       else:
-        user['profileImage'] = None
+        user['profileImage'] = ""
       try:
         user['matched'] = doc['matched']
       except:
         user['matched'] = None
       user['sourceCollection'] = TWITTER
       try:
-        user['bornAt'] = parseDate(doc['born'][5:]) 
+        user['bornAt'] = parseDate(doc['born'][5:]) # removes "Born " string
       except:
         user['bornAt'] = None
-      #user['ner'] = doc['ner'] # we added this to save computation time
           
       # Specials
       user['username'] = doc['_id']
       user['tweets'] = doc['tweets']
       user['followers'] = doc['followerids']
-      #user['handle'] = doc['handle'] # Redundant
       if doc['joined'] != "":
         user['joinedAt'] = parseDate(doc['joined'][7:])
       else:
@@ -204,4 +212,3 @@ class Mongo:
     def __getUser(self, username, coll = FACEBOOK):
       return self.db[coll].find_one({"_id": username})
       
-

@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 from sklearn import ensemble
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
@@ -37,6 +36,9 @@ class Classifier:
       self.y_test = y_test
     
     def printFeatureRankings(self):
+      '''Plots the feature importance rankings, which is calculated with a RandomForestClassifier.
+      
+      '''
       # Build a forest and compute the feature importances
       forest = ensemble.RandomForestClassifier(n_estimators= 24,random_state=self.seed)
       forest.fit(self.x_train, np.ravel(self.y_train))
@@ -57,6 +59,10 @@ class Classifier:
       print("Indices of features  :",indices)
 
     def makeModel(self, model_name = "AdaBoostClassifier"):
+      '''Trains a model and chooses the best one with a grid search.
+      
+      The default model name is AdaBoostClassifier.
+      '''
       print("Training",model_name)
       if model_name == "ExtraTreesClassifier":
         param_grid  = {'n_estimators': [2,4,8,16,32,64,128,256,400], 'criterion':["gini", "entropy"], 'random_state': [42]}
@@ -81,22 +87,3 @@ class Classifier:
       else:
         raise Exception("Unknown model name: "+model_name)
       return model
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,53 +1,57 @@
 from mongo import Mongo
 from matcher import Matcher
 
-MONGO_CREDS = {
-  "MONGO_HOST": "209.250.251.192",
-  "MONGO_USER": "root",
-  "MONGO_PASS": "PASSWORD",
-  "PKEY_PATH": "C:/Users/ASUS/.ssh/id_rsa",
-  "PKEY_PASS" : "",
-  "MONGO_DB": "last-facebook-twitter"
-}
-FACEBOOK = "Facebook"
-TWITTER = "Twitter"
-TEST_TYPE = "indirect_tw" # edit this depending on your need
+METHOD = "ML_direct_tw" # edit this depending on your need
 
 mon = Mongo()
 mon.connect()
+###############
 
-
-if TEST_TYPE == "getuser_fb":
-  (f, fd) = mon.getFacebookUser('Itzhakperlmanofficial', returnDoc = True)
-elif TEST_TYPE == "getuser_tw":
+if METHOD == "getuser_fb":
+  (f, fd) = mon.getFacebookUser('MayorMurielBowser', returnDoc = True)
+elif METHOD == "getuser_tw":
   (t, td) = mon.getTwitterUser('PerlmanOfficial', returnDoc = True)
 else:
-  matcher = Matcher(mon)
-  if TEST_TYPE == "direct_fb":
-    match = matcher.findMatchForFacebookUser('Itzhakperlmanofficial')
-  elif TEST_TYPE == "direct_tw":
-    match = matcher.findMatchForTwitterUser('PerlmanOfficial')
-  elif TEST_TYPE == "indirect_fb":
-    match = matcher.findIndirectMatchForFacebookUser('Itzhakperlmanofficial')
-  elif TEST_TYPE == "indirect_tw":
-    match = matcher.findIndirectMatchForTwitterUser('PerlmanOfficial')
-  elif TEST_TYPE == "ML_direct_fb":
-    match = matcher.findMatchForFacebookUser('Itzhakperlmanofficial', useML=True)
-  elif TEST_TYPE == "ML_direct_tw":
-    match = matcher.findMatchForTwitterUser('PerlmanOfficial', useML=True)
-  elif TEST_TYPE == "ML_indirect_fb":
-    match = matcher.findIndirectMatchForFacebookUser('Itzhakperlmanofficial', useML=True)
-  elif TEST_TYPE == "ML_indirect_tw":
-    match = matcher.findIndirectMatchForTwitterUser('PerlmanOfficial', useML=True)
-  else:
-    print("Arbitrary test.")
-
-
-###############
-
-
-
-###############
+  matcher = Matcher(mon) # note that this takes a bit of time to load
   
+  if METHOD == "direct_fb":
+    match = matcher.findMatchForFacebookUser('Itzhakperlmanofficial', useML=False)
+    
+  elif METHOD == "direct_tw":
+    match = matcher.findMatchForTwitterUser('PerlmanOfficial', useML=False)
+    
+  elif METHOD == "indirect_fb":
+    match = matcher.findIndirectMatchForFacebookUser('Itzhakperlmanofficial', useML=False)
+    
+  elif METHOD == "indirect_tw":
+    match = matcher.findIndirectMatchForTwitterUser('PerlmanOfficial', useML=False)
+    
+  elif METHOD == "ML_direct_fb":
+    match = matcher.findMatchForFacebookUser('timurban80')
+    
+  elif METHOD == "ML_direct_tw":
+    match = matcher.findMatchForTwitterUser('PerlmanOfficial')
+    
+  elif METHOD == "ML_indirect_fb":
+    match = matcher.findIndirectMatchForFacebookUser('Itzhakperlmanofficial')
+    
+  elif METHOD == "ML_indirect_tw":
+    match = matcher.findIndirectMatchForTwitterUser('PerlmanOfficial')
+    
+  else:
+    print("Unknown method: "+METHOD)
+
+###############  
 mon.terminate()
 
+'''
+Some example users:
+  Twitter:
+    PerlmanOfficial
+    waitbutwhy
+    
+  Facebook:
+    Itzhakperlmanofficial
+    timurban80
+    
+'''
