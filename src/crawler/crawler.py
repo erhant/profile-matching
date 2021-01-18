@@ -1,6 +1,5 @@
 
 # This is a library for extracting Facebook and Twitter profile information
-# developed by Mandana Bagheri Marzijarani (mmarzijrani@ku.edu.tr)
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import time
